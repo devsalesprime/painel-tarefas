@@ -1,0 +1,39 @@
+# Arquivos do sistema
+*.log
+error.log
+php-error.log
+api_errors.log
+
+# Ambiente e credenciais
+.env
+.env.local
+.env.*.local
+
+# Dependências
+/vendor/
+/node_modules/
+
+# Uploads
+/uploads/*
+!/uploads/.gitkeep
+
+# Backups
+/backup/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~

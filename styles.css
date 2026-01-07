@@ -1,0 +1,2270 @@
+/*
+====================================================
+  Task Panel - Stylesheet
+  Estrutura hierárquica de seções e comentários
+
+  1) Design tokens e reset
+     1.1) Variáveis (:root)
+     1.2) Reset global (*)
+     1.3) Base (body)
+
+  2) Componentes de status e estatísticas
+     2.1) Barra de estatísticas (.stats-bar)
+     2.2) Cartão de estatística (.stat-card, .stat-icon, .stat-content)
+
+  3) Container e cabeçalhos
+     3.1) Container principal (.container-tarefas)
+     3.2) Header com ações (.header-actions)
+
+  4) Filtros e busca
+     4.1) Badges e grupos de filtro (.filter-group/.filter-badge)
+     4.2) Barra de busca (.search-bar)
+     4.3) Botões de filtro segmentados (.filters/.filter-btn)
+
+  5) Projetos, listas e cards
+     5.1) Seções de projeto (.projeto-*)
+     5.2) Grid de tarefas (.tarefas-grid)
+     5.3) Card de tarefa (.card-tarefa e variações)
+
+  6) Metadados, datas e usuários
+     6.1) Badges, status e descrições
+     6.2) Usuários atribuídos (.usuarios-tarefa)
+     6.3) Datas de tarefa (.datas-tarefa)
+
+  7) Ações e botões
+     7.1) Área de ações (.acoes-tarefa)
+     7.2) Botões (.btn-*)
+
+  8) Estados vazios, tabs e formulários
+     8.1) Estado sem tarefas (.sem-tarefas)
+     8.2) Abas (.tab-content/.nav-tabs)
+     8.3) Form controls e validação
+
+  9) Navbar e dropdowns
+     9.1) Navbar customizada (.navbar-custom)
+     9.2) Dropdown de usuário e responsividade
+
+  10) Modais e utilidades
+     10.1) Inputs com toggle, força de senha
+     10.2) Avatar, badges de função
+     10.3) Utilitários e media queries
+====================================================
+*/
+
+/* 1.1) Variáveis de design (tokens) */
+:root {
+  --primary: #3d4f73;
+  --secondary: #0b1426;
+  --text-color: #333;
+  --text-muted: #6c757d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --light-bg: #f8f9fa;
+  --border-color: #e9ecef;
+  --text-muted: #6c757d;
+}
+
+/* 1.2) Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* 1.3) Base da página */
+body {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  min-height: 100vh;
+  padding: 20px 0;
+  font-family: "Manrope", sans-serif;
+}
+
+/* 2.1) Barra de estatísticas com grid responsivo */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+/* 2.2) Cartão de estatística */
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.stat-content h6 {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.stat-content p {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+/* 3.1) Container principal de tarefas */
+.container-tarefas {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 3.2) Header com ações (definição base)
+   Observação: há uma versão mais completa desta classe
+   documentada na seção 9 (Navbar e controles), que
+   adiciona estilos visuais extras e responsividade. */
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.btn-novo {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-novo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  color: white;
+}
+
+/* 4.1) Grupo de filtros (badges) */
+.filter-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-badge {
+  background: var(--light-bg);
+  color: #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.filter-badge:hover,
+.filter-badge.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  border-color: var(--primary);
+}
+
+.projeto-section {
+  margin-bottom: 40px;
+}
+
+.projeto-header {
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.projeto-titulo {
+  font-size: 22px;
+  color: #333;
+  font-weight: 700;
+  margin: 0;
+}
+
+.projeto-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.badge-count {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.tarefas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.card-tarefa {
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-tarefa::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.card-tarefa:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  transform: translateY(-5px);
+}
+
+.card-tarefa.concluida {
+  background: var(--light-bg);
+  opacity: 0.7;
+}
+
+.card-tarefa.concluida::before {
+  background: #28a745;
+}
+
+.card-tarefa.concluida .titulo-tarefa {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.card-header-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.titulo-tarefa {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  word-break: break-word;
+  flex: 1;
+}
+
+.badge-status {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-iniciada {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-pausada {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-concluida {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.descricao-tarefa {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 12px 0;
+  min-height: 40px;
+  line-height: 1.4;
+}
+
+.usuarios-tarefa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.badge-usuario {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.datas-tarefa {
+  display: flex;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 12px 5px;
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.data-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.data-item i {
+  color: var(--primary);
+}
+
+.status-atraso {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.acoes-tarefa {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-acao {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-status {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  flex: 1;
+  min-width: 100px;
+}
+
+.btn-status:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.btn-editar {
+  background: var(--light-bg);
+  color: var(--primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-editar:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-deletar {
+  background: #ffe0e0;
+  color: var(--danger);
+  border: 1px solid #ffcccc;
+}
+
+.btn-deletar:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.sem-tarefas {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 60px 20px;
+  font-style: italic;
+}
+
+.sem-tarefas i {
+  font-size: 48px;
+  color: var(--border-color);
+  margin-bottom: 15px;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-control,
+.form-select {
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.usuario-badge-selecionado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  margin: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.usuario-badge-selecionado .remove {
+  cursor: pointer;
+  font-weight: bold;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.usuario-badge-selecionado .remove:hover {
+  opacity: 1;
+}
+
+.autocomplete-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-list li {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.autocomplete-list li:hover {
+  background: var(--light-bg);
+}
+
+.autocomplete-list li:last-child {
+  border-bottom: none;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-muted);
+  border-color: var(--border-color);
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Estilos para melhorias */
+.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+.contador-caracteres {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.contador-caracteres.excedido {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.btn-projeto-rapido {
+  transition: all 0.3s ease;
+}
+
+.btn-projeto-rapido:hover {
+  transform: scale(1.05);
+}
+
+.busca-tarefas-container {
+  max-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .tarefas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-novo {
+    width: 100%;
+  }
+
+  .container-tarefas {
+    padding: 20px;
+  }
+
+  .stats-bar {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .busca-tarefas-container {
+    max-width: 100%;
+  }
+}
+
+/* ========== HEADER COM CONTROLES ========== */
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--light-bg);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* ========== BARRA DE BUSCA ========== */
+.search-bar {
+  position: relative;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 2;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ========== FILTROS - BOTÕES SEGMENTADOS ========== */
+.filters {
+  display: flex;
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  border: none;
+  background: white;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-right: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.filter-btn:last-child {
+  border-right: none;
+}
+
+.filter-btn:hover {
+  background: var(--light-bg);
+  color: var(--primary);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* ========== BOTÕES DE AÇÃO ========== */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-outline-primary {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  background: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-danger {
+  background: #dc3545;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  color: white;
+}
+
+/* ========== RESPONSIVIDADE ========== */
+@media (max-width: 1024px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar {
+    min-width: 100%;
+    max-width: 100%;
+    order: 1;
+  }
+
+  .filters {
+    order: 2;
+    justify-content: center;
+  }
+
+  .action-buttons {
+    order: 3;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    padding: 15px;
+  }
+
+  .filters {
+    flex-wrap: wrap;
+    border-radius: 8px;
+  }
+
+  .filter-btn {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .filter-btn:nth-child(2n) {
+    border-right: none;
+  }
+
+  .filter-btn:nth-last-child(-n + 2) {
+    border-bottom: none;
+  }
+
+  .action-buttons {
+    width: 100%;
+  }
+
+  .btn-outline-primary,
+  .btn-primary {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-btn {
+    min-width: 100px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .search-bar input {
+    padding: 10px 15px 10px 40px;
+  }
+
+  .btn-outline-primary,
+  .btn-primary {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+/* Estilo base quando não tem números (valor 0) */
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+/* Ícone no estado base */
+.stat-card .stat-icon {
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+/* Conteúdo no estado base */
+.stat-card .stat-content h6 {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+}
+
+.stat-card .stat-content p {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+/* ========== ESTILOS QUANDO TEM NÚMEROS (> 0) ========== */
+
+/* Card Total - quando tem números */
+.stat-card.stat-total:not([data-value="0"]) {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-left: 4px solid #0056b3;
+}
+
+.stat-card.stat-total:not([data-value="0"]) .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card.stat-total:not([data-value="0"]) .stat-content h6,
+.stat-card.stat-total:not([data-value="0"]) .stat-content p {
+  color: white;
+}
+
+/* Card Andamento - quando tem números */
+.stat-card.stat-progress:not([data-value="0"]) {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+  color: white;
+  border-left: 4px solid #0aa2c0;
+}
+
+.stat-card.stat-progress:not([data-value="0"]) .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card.stat-progress:not([data-value="0"]) .stat-content h6,
+.stat-card.stat-progress:not([data-value="0"]) .stat-content p {
+  color: white;
+}
+
+/* Card Pausadas - quando tem números */
+.stat-card.stat-paused:not([data-value="0"]) {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: white;
+  border-left: 4px solid #ff9800;
+}
+
+.stat-card.stat-paused:not([data-value="0"]) .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card.stat-paused:not([data-value="0"]) .stat-content h6,
+.stat-card.stat-paused:not([data-value="0"]) .stat-content p {
+  color: white;
+}
+
+/* Card Concluídas - quando tem números */
+.stat-card.stat-completed:not([data-value="0"]) {
+  background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+  color: white;
+  border-left: 4px solid #146c43;
+}
+
+.stat-card.stat-completed:not([data-value="0"]) .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card.stat-completed:not([data-value="0"]) .stat-content h6,
+.stat-card.stat-completed:not([data-value="0"]) .stat-content p {
+  color: white;
+}
+
+/* Card Atrasadas - quando tem números */
+.stat-card.stat-overdue:not([data-value="0"]) {
+  background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+  color: white;
+  border-left: 4px solid #b02a37;
+}
+
+.stat-card.stat-overdue:not([data-value="0"]) .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card.stat-overdue:not([data-value="0"]) .stat-content h6,
+.stat-card.stat-overdue:not([data-value="0"]) .stat-content p {
+  color: white;
+}
+/* ========== NAVBAR CUSTOMIZADA ========== */
+.navbar-custom {
+  background-color: linear-gradient(
+    135deg,
+    var(--secondary) 0%,
+    var(--secondary) 100%
+  );
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.navbar-custom .navbar-brand {
+  font-size: 24px;
+  font-weight: 700;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.navbar-custom .navbar-brand i {
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.navbar-custom .navbar-brand:hover {
+  transform: translateY(-1px);
+}
+
+.navbar-custom .navbar-brand:hover i {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Dropdown do usuário */
+.navbar-nav .nav-item.dropdown {
+  margin-left: 15px;
+}
+
+.nav-link.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white !important;
+  font-weight: 500;
+  padding: 8px 16px !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-link.dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-link.dropdown-toggle::after {
+  margin-left: 8px;
+  border-top-color: white;
+}
+
+.nav-link.dropdown-toggle i {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+#userName {
+  font-weight: 600;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  margin-top: 8px !important;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  margin: 2px 0;
+}
+
+.dropdown-item:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  transform: translateX(5px);
+}
+
+.dropdown-item-text {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-divider {
+  margin: 8px 0;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Ícones nos dropdown items */
+.dropdown-item i {
+  width: 16px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.dropdown-item:hover i {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Badge de status do usuário */
+.user-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #28a745;
+  margin-left: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+/* Navbar responsiva */
+@media (max-width: 991.98px) {
+  .navbar-custom {
+    padding: 10px 0;
+  }
+
+  .navbar-custom .navbar-brand {
+    font-size: 20px;
+  }
+
+  .navbar-custom .navbar-brand i {
+    font-size: 24px;
+    padding: 6px;
+  }
+
+  .nav-link.dropdown-toggle {
+    padding: 6px 12px !important;
+    font-size: 14px;
+  }
+
+  .dropdown-menu {
+    width: 95%;
+    margin: 5px auto !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar-custom .container {
+    padding: 0 15px;
+  }
+
+  .navbar-custom .navbar-brand {
+    font-size: 18px;
+  }
+
+  .navbar-custom .navbar-brand i {
+    font-size: 20px;
+  }
+
+  #userName {
+    display: none;
+  }
+
+  .nav-link.dropdown-toggle {
+    padding: 8px !important;
+    min-width: 40px;
+    justify-content: center;
+  }
+
+  .nav-link.dropdown-toggle::after {
+    display: none;
+  }
+}
+
+/* Efeito de glass morphism para dark mode */
+@media (prefers-color-scheme: dark) {
+  .dropdown-menu {
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dropdown-item {
+    color: #f8f9fa;
+  }
+
+  .dropdown-item:hover {
+    background: var(--secondary);
+  }
+
+  .dropdown-item-text {
+    color: #adb5bd;
+  }
+
+  .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Scroll suave */
+.navbar-custom {
+  scroll-margin-top: 80px;
+}
+
+/* Efeito de destaque quando há notificações */
+.navbar-custom.has-notifications .nav-link.dropdown-toggle::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #ff4757;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+/* ========== ESTILOS PARA MODAIS DE USUÁRIO ========== */
+
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+  color: var(--primary);
+}
+
+.password-strength {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.password-strength.weak {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border-left: 3px solid #dc3545;
+}
+
+.password-strength.medium {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border-left: 3px solid #ffc107;
+}
+
+.password-strength.strong {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border-left: 3px solid #28a745;
+}
+
+/* Avatar do usuário */
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32px;
+  margin: 0 auto 20px;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Badge de função */
+.funcao-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.funcao-usuario {
+  background: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+}
+
+.funcao-editor {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.funcao-admin {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+/* Contador de caracteres */
+.contador-caracteres {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.contador-caracteres.excedido {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Modal headers com gradiente */
+.modal-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+.nav-link,
+.admin-link {
+  color: white !important;
+  font-weight: 500;
+  padding: 8px 16px !important;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+/* ========== ESTILOS PARA PRIORIDADES ========== */
+
+/* Bordas coloridas para as tarefas baseadas na prioridade */
+.card-tarefa.prioridade-danger {
+  border-left: 4px solid #dc3545;
+}
+
+.card-tarefa.prioridade-success {
+  border-left: 4px solid #28a745;
+}
+
+.card-tarefa.prioridade-warning {
+  border-left: 4px solid #ffc107;
+}
+
+.card-tarefa.prioridade-info {
+  border-left: 4px solid #17a2b8;
+}
+
+/* Badges de prioridade */
+.prioridade-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Efeito hover nas opções de prioridade */
+.dropdown-item:hover .text-danger,
+.dropdown-item:hover .text-success,
+.dropdown-item:hover .text-warning,
+.dropdown-item:hover .text-info {
+  opacity: 0.8;
+}
+
+/* Destaque para tarefas de alta prioridade */
+.card-tarefa.prioridade-danger {
+  background: linear-gradient(
+    90deg,
+    rgba(220, 53, 69, 0.02) 0%,
+    transparent 100%
+  );
+}
+
+/* Ordenação visual por prioridade */
+.tarefas-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Garantir que tarefas de alta prioridade apareçam primeiro */
+.card-tarefa.prioridade-danger {
+  order: 1;
+}
+
+.card-tarefa.prioridade-success {
+  order: 2;
+}
+
+.card-tarefa.prioridade-warning {
+  order: 3;
+}
+
+.card-tarefa.prioridade-info {
+  order: 4;
+}
+
+/* Tooltips para prioridades */
+.prioridade-badge {
+  position: relative;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .prioridade-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .prioridade-badge .dropdown-toggle::after {
+    margin-left: 0.25rem;
+  }
+}
+/* ========== ESTILOS PARA VISUALIZAÇÃO KANBAN ========== */
+
+/* Container principal do Kanban */
+.kanban-container {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+  min-height: 600px;
+}
+
+/* Coluna do Kanban */
+.kanban-column {
+  flex: 0 0 300px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 500px;
+  border: 2px dashed #dee2e6;
+}
+
+.kanban-column.active {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.kanban-column h5 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.kanban-column .badge {
+  font-size: 0.7rem;
+}
+
+/* Cartões no Kanban */
+.kanban-card {
+  background: white;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #007bff;
+  cursor: grab;
+  transition: all 0.3s ease;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.kanban-card.prioridade-danger {
+  border-left-color: #dc3545;
+}
+
+.kanban-card.prioridade-success {
+  border-left-color: #28a745;
+}
+
+.kanban-card.prioridade-warning {
+  border-left-color: #ffc107;
+}
+
+.kanban-card.prioridade-info {
+  border-left-color: #17a2b8;
+}
+
+.kanban-card.concluida {
+  opacity: 0.7;
+  background: #f8f9fa;
+}
+
+.kanban-card .card-header-mini {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.kanban-card .titulo-tarefa {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.kanban-card .descricao-tarefa {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kanban-card .usuarios-tarefa {
+  margin-bottom: 0.5rem;
+}
+
+.kanban-card .datas-tarefa {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.kanban-card .acoes-tarefa {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.kanban-card .btn-acao {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+}
+
+/* Área de drop */
+.kanban-drop-zone {
+  min-height: 100px;
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.kanban-drop-zone.active {
+  border-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+}
+
+/* Estilos para visualização em lista */
+.lista-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lista-tarefa {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #007bff;
+  transition: all 0.3s ease;
+}
+
+.lista-tarefa:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lista-tarefa.prioridade-danger {
+  border-left-color: #dc3545;
+}
+
+.lista-tarefa.prioridade-success {
+  border-left-color: #28a745;
+}
+
+.lista-tarefa.prioridade-warning {
+  border-left-color: #ffc107;
+}
+
+.lista-tarefa.prioridade-info {
+  border-left-color: #17a2b8;
+}
+
+.lista-tarefa.concluida {
+  opacity: 0.7;
+  background: #f8f9fa;
+}
+
+.lista-tarefa .tarefa-header {
+  display: flex;
+  justify-content: between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.lista-tarefa .tarefa-info {
+  flex: 1;
+}
+
+.lista-tarefa .tarefa-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lista-tarefa .tarefa-detalhes {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .kanban-container {
+    flex-direction: column;
+  }
+
+  .kanban-column {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .lista-tarefa .tarefa-detalhes {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .lista-tarefa .tarefa-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Estados de drag and drop */
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+}
+
+.kanban-column.drag-over {
+  background: rgba(0, 123, 255, 0.1);
+  border-color: #007bff;
+}
+
+/* Controles de visualização */
+.view-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.view-controls .btn-group {
+  margin: 0;
+}
+
+/* Badges de contagem */
+.column-count {
+  background: #6c757d;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  margin-left: 0.5rem;
+}
+/* Estilos para o modal unificado */
+.etapa-item {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s;
+}
+
+.etapa-item:hover {
+  background-color: #e9ecef;
+}
+
+.etapa-item .form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+  font-weight: 600;
+}
+
+.card-header.bg-light {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6;
+}
+/* Estilos para os contadores de arquivos e comentários */
+.tarefa-metadata {
+  font-size: 0.8rem;
+}
+
+.tarefa-metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6c757d;
+  transition: color 0.2s ease;
+}
+
+.tarefa-metadata-item:hover {
+  color: #495057;
+}
+
+.tarefa-metadata-item i {
+  font-size: 0.7rem;
+}
+
+.tarefa-metadata-item small {
+  font-weight: 600;
+}
+
+/* Destaque quando há arquivos ou comentários */
+.tarefa-metadata-item[title*="1 arquivo"],
+.tarefa-metadata-item[title*="1 comentário"] {
+  color: #495057;
+}
+
+.tarefa-metadata-item[title*="0 arquivo"] i,
+.tarefa-metadata-item[title*="0 comentário"] i {
+  opacity: 0.5;
+}
+
+/* Para cards Kanban */
+.kanban-card .tarefa-metadata {
+  margin-top: 8px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.kanban-card .tarefa-metadata-item {
+  font-size: 0.7rem;
+}
+
+/* Para lista */
+.lista-tarefa .tarefa-metadata {
+  margin-right: auto;
+}
+
+/* Estilos específicos para relatórios */
+.relatorio-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 25px;
+  border: 1px solid #e9ecef;
+}
+
+.relatorio-card h4 {
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.relatorio-card h4 i {
+  color: #3d4f73;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin: 20px 0;
+}
+
+.metric-card {
+  display: flex;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 15px;
+  align-content: center;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.metric-card.success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.metric-card.danger {
+  background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+}
+
+.metric-card.warning {
+  background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+}
+
+.metric-card.info {
+  background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+}
+
+.metric-card h3 {
+  font-size: 42px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.metric-card p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tarefa-relatorio {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 4px solid #dc3545;
+}
+
+.tarefa-relatorio.pausada {
+  border-left-color: #ffc107;
+}
+
+.tarefa-relatorio h6 {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.tarefa-relatorio .info-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.badge-projeto {
+  background: #3d4f73;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.filtros-relatorio {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+.btn-exportar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-exportar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  color: white;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-spinner .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: #3d4f73;
+}
+
+.table-relatorio {
+  font-size: 14px;
+}
+
+.table-relatorio th {
+  background: #f8f9fa;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #495057;
+}
+
+.progress-bar-relatorio {
+  height: 8px;
+  border-radius: 4px;
+  background: #e9ecef;
+  overflow: hidden;
+}
+
+/* Garantir que as barras de progresso sejam visíveis */
+.progress-bar-relatorio {
+  width: 100%;
+  height: 20px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  min-width: 100px;
+}
+
+.progress-bar-relatorio .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745, #20c997);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+  min-width: 3%; /* Garantir que barras pequenas sejam visíveis */
+}
+
+/* Para taxas de 0%, mostrar uma barra cinza muito clara */
+.progress-bar-relatorio .fill[style*="width: 0%"] {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.table-relatorio td,
+.table-relatorio th {
+  vertical-align: middle;
+}
+
+/* Garantir que as barras de progresso sejam visíveis mesmo com 0% */
+.progress-bar.bg-secondary {
+  background-color: transparent !important;
+  min-width: 40px; /* Largura mínima para mostrar o texto */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6c757d;
+}
+
+.table-relatorio td,
+.table-relatorio th {
+  vertical-align: middle;
+}
+
+.tarefa-relatorio {
+  border-left: 4px solid #dc3545;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.tarefa-relatorio.pausada {
+  border-left-color: #ffc107;
+}
+
+.info-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+/* Estilo para as tarefas do relatório */
+.tarefa-relatorio {
+  border-left: 4px solid #dc3545;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.tarefa-relatorio.pausada {
+  border-left-color: #ffc107;
+}
+
+.info-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+/* Garantir que barras de progresso pequenas sejam visíveis */
+.progress-bar[style*="width: 0%"] {
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+}
+.tarefa-metadata-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tarefa-metadata-item i {
+  color: var(--primary);
+}
+
+.tarefa-metadata-item small {
+  font-weight: 600;
+}
+/* Estilos para o contador de checklist */
+.tarefa-metadata-item.checklist-item {
+  position: relative;
+}
+
+.checklist-bar {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #e9ecef;
+  border-radius: 1px;
+}
+
+.checklist-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745, #20c997);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+
+/* Cores baseadas no progresso */
+.tarefa-metadata-item.checklist-item[title*="0/"] i {
+  color: #6c757d;
+  opacity: 0.5;
+}
+
+.tarefa-metadata-item.checklist-item:not([title*="0/"]) i {
+  color: #28a745;
+}
+/* Estilos para projetos concluídos */
+.projeto-section.concluido {
+  opacity: 0.8;
+  background: linear-gradient(
+    90deg,
+    rgba(40, 167, 69, 0.02) 0%,
+    transparent 100%
+  );
+  border-left: 4px solid #28a745;
+  padding-left: 20px;
+}
+
+.projeto-section.concluido .projeto-titulo {
+  color: #28a745;
+}
+
+.projeto-section.concluido::before {
+  content: "✓ ";
+  color: #28a745;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.badge.bg-success {
+  animation: pulse-success 2s infinite;
+}
+
+@keyframes pulse-success {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(40, 167, 69, 0);
+  }
+}
+/* Feedback visual para upload */
+.upload-status {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  display: none;
+}
+
+.upload-status.uploading {
+  display: block;
+  background-color: #e3f2fd;
+  border: 1px solid #2196f3;
+}
+
+.upload-status.success {
+  display: block;
+  background-color: #e8f5e8;
+  border: 1px solid #4caf50;
+}
+
+.upload-status.error {
+  display: block;
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+}
+/* ========== ESTILO PARA BOTÃO "SUAS TAREFAS" ========== */
+#viewMinhasTarefas:checked + label {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+#viewMinhasTarefas:checked + label:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Ícone do botão Minhas Tarefas */
+label[for="viewMinhasTarefas"] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+label[for="viewMinhasTarefas"] i {
+  font-size: 0.875rem;
+}
+
+/* Adicione este CSS para melhor visualização */
+.btn-group-toggle .btn-check:checked + .btn {
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 100%
+  ) !important;
+  border-color: #0d6efd;
+  color: white;
+}
+
+/* Estilo específico para o botão "Suas Tarefas" quando ativo */
+#viewMinhasTarefas:checked + .btn {
+  background-color: #198754 !important; /* Verde para diferenciar do azul */
+  border-color: #198754 !important;
+  color: white !important;
+}
+
+/* Opcional: Estilo quando ambos estão ativos (visualização + filtro) */
+.btn-group-toggle .btn.active {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+#viewMinhasTarefas:checked + .btn.active {
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+/* CSS para alternar ícones */
+#viewMinhasTarefas + .btn .icon-ativado {
+  display: none;
+}
+
+#viewMinhasTarefas + .btn .icon-desativado {
+  display: inline-block;
+}
+
+#viewMinhasTarefas:checked + .btn .icon-ativado {
+  display: inline-block;
+}
+
+#viewMinhasTarefas:checked + .btn .icon-desativado {
+  display: none;
+}
+.btn-success {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+/* Classe personalizada para o botão de visualização ativo */
+.btn-check:checked + .btn.visualizacao-ativa,
+.btn.visualizacao-ativa.active,
+.btn.visualizacao-ativa.show {
+  color: white !important;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-color: var(--secondary) !important;
+}
+
+/* Específico para o botão "Suas Tarefas" quando ativo */
+#viewMinhasTarefas:checked + .btn.visualizacao-ativa {
+  background: linear-gradient(
+    135deg,
+    var(--bs-success) 0%,
+    var(--bs-info) 100%
+  ) !important;
+  border-color: var(--bs-success) !important;
+}
+/* Estilo para botões com ícone e tooltip nativo */
+.btn-icone-tooltip {
+  position: relative;
+  overflow: visible;
+}
+
+.btn-icone-tooltip .btn-texto {
+  display: none;
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+.btn-icone-tooltip .btn-texto::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 4px 4px 4px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+}
+
+.btn-icone-tooltip:hover .btn-texto {
+  display: block;
+}
+
+/* Em telas maiores, mostrar o texto normalmente */
+@media (min-width: 576px) {
+  .btn-icone-tooltip .btn-texto {
+    display: inline-block;
+    position: static;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    margin-left: 4px;
+    transform: none;
+  }
+
+  .btn-icone-tooltip .btn-texto::after {
+    display: none;
+  }
+
+  .btn-icone-tooltip:hover .btn-texto {
+    display: inline-block;
+  }
+}
+/* ========================================
+   ARQUIVO DE PROJETOS - ESTILOS
+   ======================================== */
+
+/* Estilos gerais do Arquivo */
+.arquivo-container {
+    background-color: var(--color-background);
+    min-height: 100vh;
+}

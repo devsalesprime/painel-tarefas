@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Sistema de Tarefas</title>
+    <link rel="icon" href="https://salesprime.com.br/wp-content/uploads/2024/06/cropped-cropped-Favicon-site-32x32.webp"
+        sizes="32x32" />
+    <link rel="icon"
+        href="https://salesprime.com.br/wp-content/uploads/2024/06/cropped-cropped-Favicon-site-192x192.webp"
+        sizes="192x192" />
+    <link rel="apple-touch-icon"
+        href="https://salesprime.com.br/wp-content/uploads/2024/06/cropped-cropped-Favicon-site-180x180.webp" />
+    <meta name="msapplication-TileImage"
+        content="https://salesprime.com.br/wp-content/uploads/2024/06/cropped-cropped-Favicon-site-270x270.webp" />
+    <meta name="description"
+        content="Sales Prime - Fundada por Dani Martins, campeã de vendas reconhecida internacionalmente e criadora do Método PRIME." />
+    <meta name="robots" content="follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large" />
+    <link rel="canonical" href="https://salesprime.com.br/" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sales Prime" />
+    <meta property="og:description"
+        content="Sales Prime - Fundada por Dani Martins, campeã de vendas reconhecida internacionalmente e criadora do Método PRIME." />
+    <meta property="og:url" content="https://salesprime.com.br/" />
+    <meta property="og:site_name" content="Sales Prime - Vendas é o coração de todo negócio" />
+    <meta property="og:updated_time" content="2025-10-16T19:20:57+00:00" />
+    <meta property="og:image" content="https://salesprime.com.br/wp-content/uploads/2024/09/thumbnail-sales.jpg" />
+    <meta property="og:image:secure_url"
+        content="https://salesprime.com.br/wp-content/uploads/2024/09/thumbnail-sales.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt"
+        content="Sales Prime Impulsionamos empresas treinando seus times comerciais. Método PRIME®: validado em 7 países." />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="article:published_time" content="2025-04-11T18:21:50+00:00" />
+    <meta property="article:modified_time" content="2025-10-16T19:20:57+00:00" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sales Prime" />
+    <meta name="twitter:description"
+        content="Sales Prime - Fundada por Dani Martins, campeã de vendas reconhecida internacionalmente e criadora do Método PRIME." />
+    <meta name="twitter:image" content="https://salesprime.com.br/wp-content/uploads/2024/09/thumbnail-sales.jpg" />
+    <meta name="twitter:label1" content="Escrito por" />
+    <meta name="twitter:data1" content="Web_Designer" />
+    <meta name="twitter:label2" content="Tempo para leitura" />
+    <meta name="twitter:data2" content="3 minutos" />
+    <link rel="icon" href="https://salesprime.com.br/wp-content/uploads/2024/06/cropped-cropped-Favicon-site-32x32.webp"
+        sizes="32x32" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Estilos customizados -->
+    <link href="styles.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- Verificação de autenticação -->
+    <script>
+        if (!localStorage.getItem('auth_token')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <!-- [ETAPA 3] NAVBAR E MENU DO USUÁRIO -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <svg width="141" height="58" viewBox="0 0 141 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_2825_92)">
+                        <path
+                            d="M62.5337 34.2059C65.7834 34.2059 67.5407 35.7528 67.5407 37.9477C67.5407 38.2858 67.4999 38.6943 67.3875 39.0406C67.2742 39.3878 67.1393 39.7217 66.9169 40.1178C66.5896 40.7002 66.0349 41.3457 65.5935 41.7227C64.5358 42.6258 63.2316 43.4801 63.2316 43.4801L58.0363 46.9916V51.823C58.0363 52.756 58.7959 53.5116 59.7337 53.5116V53.906H51.8975V53.5116C52.8352 53.5116 53.5948 52.756 53.5948 51.823V36.2881C53.5948 35.3584 52.8352 34.5995 51.8975 34.5995V34.2051H62.5337V34.2059ZM59.3081 44.5912C60.7031 43.5596 61.6117 42.5181 62.2438 41.562C62.8751 40.605 63.2374 39.2428 63.2374 37.9486C63.2374 36.5184 62.0082 35.3593 60.6348 35.3593C59.2614 35.3593 58.0355 36.5184 58.0355 37.9486V45.5482L59.3089 44.5912H59.3081Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M82.9293 47.2932C83.0043 47.5186 84.122 51.1618 84.3268 51.6904C84.5317 52.2191 84.7757 52.7469 85.0964 53.0468C85.417 53.3476 85.8135 53.5133 86.2665 53.5133V53.9077H80.3259C79.3256 50.4368 78.5619 48.0356 78.0347 46.7033C77.6008 45.5772 76.8937 45.3055 75.9135 45.8871L74.1312 46.9286V51.8255C74.1312 52.7585 74.8907 53.5141 75.8285 53.5141V53.9085H67.9365V53.5141C68.8743 53.5141 69.6339 52.7585 69.6339 51.8255V36.2906C69.6339 35.361 68.8743 34.602 67.9365 34.602V34.2076H78.5727C81.9366 34.2076 83.5798 35.8879 83.5798 37.9494C83.5798 38.6628 83.419 39.203 83.0992 39.8502C82.7786 40.4973 82.3164 41.098 81.7134 41.6515C81.1096 42.205 80.5016 42.688 79.8886 43.1006C79.2757 43.5133 78.5544 43.9549 77.7249 44.423C79.1199 43.8414 80.1951 43.7577 80.9497 44.1695C81.7034 44.5821 82.3638 45.6236 82.9302 47.2932H82.9293ZM75.348 44.8448C77.9106 43.3078 79.3365 40.5346 79.3365 37.9486C79.3365 36.5185 78.1713 35.3593 76.7338 35.3593C75.2963 35.3593 74.1312 36.5185 74.1312 37.9486V45.5482L75.348 44.8448Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M86.6636 34.6003V34.2059H94.4998V34.6003C93.562 34.6003 92.8025 35.3593 92.8025 36.289V51.8239C92.8025 52.7568 93.562 53.5125 94.4998 53.5125V53.9069H86.6636V53.5125C87.6014 53.5125 88.3609 52.7568 88.3609 51.8239V36.289C88.3609 35.3593 87.6014 34.6003 86.6636 34.6003Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M107.002 46.927L111.839 34.2059H117.893V34.6003C116.955 34.6003 116.195 35.3593 116.195 36.289V51.8239C116.195 52.7568 116.955 53.5125 117.893 53.5125V53.9069H110.085V53.5125C111.022 53.5125 111.782 52.7568 111.782 51.8239V37.386L105.728 53.9061H104.908L98.5715 37.386L98.5998 51.8239C98.5998 52.7568 99.3594 53.5125 100.297 53.5125V53.9069H95.6582V53.5125C96.596 53.5125 97.3555 52.7568 97.3555 51.8239V36.289C97.3555 35.3593 96.596 34.6003 95.6582 34.6003V34.2059H102.108L107.002 46.927Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M134.864 48.1267V53.906H119.051V53.5116C119.989 53.5116 120.749 52.756 120.749 51.823V36.2881C120.749 35.3584 119.989 34.5995 119.051 34.5995V34.2051H134.864V39.9885H134.468C134.468 37.4315 132.384 35.3576 129.815 35.3576H126.859C125.922 35.3576 125.162 36.1149 125.162 37.0479V43.4428H125.948C127.865 43.4428 129.419 41.8619 129.419 39.9893H129.816V48.1267H129.419C129.419 46.2152 127.865 44.6691 125.948 44.6691H125.162V51.0673C125.162 52.0003 125.921 52.756 126.859 52.756H129.815C132.385 52.756 134.468 50.6829 134.468 48.1267H134.864Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M58.292 10.2494C61.2544 10.2494 64.216 10.9405 64.9847 11.2321L64.4359 14.1429C63.4115 13.8521 61.1079 13.5969 59.1332 13.5969C56.3174 13.5969 55.7685 14.1793 55.7685 15.5249C55.7685 16.9799 56.7929 17.453 59.6454 18.3628C64.6924 20.0001 65.716 21.31 65.716 24.075C65.716 28.1863 63.449 29.6413 58.8775 29.6413C55.9517 29.6413 53.2092 29.0588 52.0391 28.6951L52.5513 25.7114C54.087 25.9658 56.135 26.2939 58.4394 26.2939C61.2919 26.2939 61.9507 25.8572 61.9507 24.1106C61.9507 22.9465 61.2928 22.4733 57.7082 21.1998C53.1001 19.5626 52.0399 18.4713 52.0399 15.597C52.0399 11.7765 53.9421 10.2486 58.2937 10.2486L58.292 10.2494Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M76.5039 17.7438H81.441V17.1257C81.441 14.9789 80.4532 13.7418 77.2351 13.7418C74.8582 13.7418 71.5668 14.1056 71.5668 14.1056L70.9455 11.1584C70.9455 11.1584 74.1636 10.3944 77.4916 10.3944C83.0142 10.3944 85.2812 12.9414 85.2812 16.8341V29.0953H82.3554L81.5509 27.0578C80.2708 28.1126 78.1129 29.459 75.5536 29.459C72.1523 29.459 69.8486 27.1672 69.8486 23.6375C69.8486 20.1078 72.1889 17.743 76.5047 17.743L76.5039 17.7438ZM81.441 20.5817H77.0161C74.6025 20.5817 73.6514 21.7094 73.6514 23.456C73.6514 25.2026 74.7116 26.1124 76.6138 26.1124C78.3694 26.1124 80.1975 25.3485 81.441 24.4752V20.5825V20.5817Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M97.4954 29.0961C96.6909 29.2055 95.9963 29.2784 95.3375 29.2784C92.156 29.2784 90.876 27.8591 90.876 24.5489V2.71771H94.6796V24.1479C94.6796 25.4943 95.1551 26.076 96.4352 26.076C96.7275 26.076 97.094 26.0395 97.4954 25.9666V29.0953V29.0961Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M116.293 27.9319C116.293 27.9319 114.391 29.4963 110.185 29.4963C104.042 29.4963 101.628 26.3676 101.628 20.1094C101.628 13.8512 104.225 10.3952 109.491 10.3952C115.818 10.3952 117.719 15.3434 116.622 21.3829H105.468C105.724 24.8397 106.967 26.1124 110.588 26.1124C113.588 26.1124 115.27 25.1661 115.27 25.1661L116.293 27.9311L116.293 27.9319ZM113.294 18.5807C113.403 15.7793 112.562 13.6324 109.527 13.6324C107.003 13.6324 105.723 15.1239 105.467 18.5807H113.294Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M127.299 10.2494C130.262 10.2494 133.223 10.9405 133.992 11.2321L133.443 14.1429C132.419 13.8521 130.115 13.5969 128.141 13.5969C125.325 13.5969 124.776 14.1793 124.776 15.5249C124.776 16.9799 125.8 17.453 128.653 18.3628C133.7 20.0001 134.723 21.31 134.723 24.075C134.723 28.1863 132.456 29.6413 127.885 29.6413C124.959 29.6413 122.217 29.0588 121.046 28.6951L121.559 25.7114C123.094 25.9658 125.142 26.2939 127.447 26.2939C130.299 26.2939 130.958 25.8572 130.958 24.1106C130.958 22.9465 130.3 22.4733 126.716 21.1998C122.107 19.5626 121.047 18.4713 121.047 15.597C121.047 11.7765 122.949 10.2486 127.301 10.2486L127.299 10.2494Z"
+                            fill="#E9EBF4" />
+                        <path
+                            d="M42.2665 18.85C48.0964 24.65 48.0964 33.35 42.2665 39.15C37.5293 43.8629 23.3194 58 23.3194 58C23.3194 58 18.1341 52.8413 13.8758 48.6048C13.8591 48.5882 13.8591 48.5626 13.8758 48.546L13.9058 48.5162C16.9864 50.7293 22.1059 50.5072 24.7768 47.85L37.8941 34.8C42.8628 29.8567 43.4508 22.2065 39.6564 16.6245C40.5542 17.2666 41.4253 18.0123 42.2665 18.8492V18.85Z"
+                            fill="#F2A011" />
+                        <path
+                            d="M23.3196 0C23.3196 0 28.5048 5.15869 32.7631 9.39517C32.779 9.41091 32.7798 9.43743 32.7631 9.454L32.7332 9.48383C29.6525 7.27071 24.533 7.49277 21.8621 10.15L8.74483 23.2C5.10032 26.8258 2.91494 31.9 7.28736 36.2508C11.6598 40.6008 16.7526 38.4175 20.3963 34.7917C22.5917 32.6076 23.7002 31.5172 24.8012 30.426C30.6669 24.6127 34.9793 29 34.9793 29L24.777 39.15C17.4897 46.4 10.2023 44.9508 4.37242 39.15C-1.45747 33.35 -1.45747 24.6492 4.37242 18.8492C9.10962 14.1379 23.3196 0 23.3196 0Z"
+                            fill="#F2A011" />
+                        <path
+                            d="M11.6597 29C11.6597 29 19.3118 21.3871 21.862 18.85C22.664 18.0521 25.9304 14.713 30.0746 14.713C35.0375 14.713 37.8833 18.3496 38.7095 21.1626C34.4878 17.6163 29.7098 19.7598 26.2427 23.2091C22.0669 27.3636 21.6746 27.7356 21.5405 27.8616C15.8272 33.2398 11.6597 29 11.6597 29Z"
+                            fill="#F2A011" />
+                        <path
+                            d="M140.056 34.4603C140.352 34.6293 140.583 34.863 140.75 35.1596C140.917 35.4571 141.001 35.791 141.001 36.1614C141.001 36.5317 140.918 36.8673 140.75 37.1681C140.583 37.468 140.352 37.7033 140.056 37.8724C139.761 38.0414 139.427 38.1267 139.054 38.1267C138.682 38.1267 138.338 38.0422 138.043 37.8724C137.747 37.7033 137.516 37.468 137.349 37.1681C137.181 36.8681 137.098 36.5326 137.098 36.1614C137.098 35.7902 137.181 35.4571 137.349 35.1596C137.515 34.8622 137.747 34.6293 138.043 34.4603C138.338 34.2913 138.675 34.2059 139.054 34.2059C139.434 34.2059 139.761 34.2904 140.056 34.4603ZM140.176 37.3015C140.462 37.0082 140.605 36.6278 140.605 36.1614C140.605 35.6949 140.462 35.3146 140.176 35.0212C139.891 34.7271 139.517 34.5804 139.054 34.5804C138.591 34.5804 138.211 34.7271 137.931 35.0212C137.652 35.3154 137.512 35.6957 137.512 36.1614C137.512 36.627 137.652 37.0082 137.931 37.3015C138.21 37.5956 138.585 37.7423 139.054 37.7423C139.523 37.7423 139.89 37.5956 140.176 37.3015ZM139.801 36.1473C139.721 36.2525 139.609 36.3279 139.468 36.3726L140.008 37.1681L139.401 37.178L138.939 36.4116H138.775V37.178H138.274V35.1174H139.199C139.417 35.1174 139.592 35.1745 139.723 35.2897C139.855 35.4049 139.921 35.5615 139.921 35.7595C139.921 35.9128 139.881 36.042 139.8 36.1481L139.801 36.1473ZM138.775 35.9981H139.169C139.24 35.9981 139.299 35.9791 139.348 35.941C139.396 35.9028 139.42 35.8482 139.42 35.7777C139.42 35.7073 139.396 35.6551 139.348 35.6195C139.299 35.5847 139.24 35.5664 139.169 35.5664H138.775V35.9981Z"
+                            fill="#E9EBF4" />
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_2825_92">
+                            <rect width="141" height="58" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                tasks
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="index.html" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                            title="Painel de Tarefas">
+                            <i class="bi bi-list-task"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="arquivo.html" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                            title="Arquivo">
+                            <i class="bi bi-archive"></i>
+                        </a>
+                    </li>
+                    <!-- Link de Administração (apenas ícone, visível apenas para admins) -->
+                    <li class="nav-item" id="adminLinkItem">
+                        <a class="nav-link admin-link" href="admin.html" data-bs-toggle="tooltip"
+                            data-bs-placement="bottom" title="Administração">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                title="Meu Perfil"></i>
+                            <span id="userName">Usuário</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><span class="dropdown-item-text" id="userRole">Função: Usuário</span></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="abrirPerfil()"><i
+                                        class="fas fa-user-edit"></i> Editar Perfil</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="alterarSenha()"><i class="fas fa-key"></i>
+                                    Alterar Senha</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i>
+                                    Sair</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Resumo Geral -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-tasks fa-2x"></i>
+                    <h3 id="metricTotal">0</h3>
+                    <p>Total de Tarefas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card success">
+                    <i class="fas fa-check-circle fa-2x"></i>
+                    <h3 id="metricConcluidas">0</h3>
+                    <p>Concluídas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card danger">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <h3 id="metricAtrasadas">0</h3>
+                    <p>Atrasadas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card warning">
+                    <i class="fas fa-pause-circle fa-2x"></i>
+                    <h3 id="metricPausadas">0</h3>
+                    <p>Pausadas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abas de Relatórios -->
+        <ul class="nav nav-tabs pb-4 mb-3" id="relatorioTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="atrasadas-tab" data-bs-toggle="tab" data-bs-target="#atrasadas"
+                    type="button">
+                    <i class="fas fa-clock"></i> Tarefas Atrasadas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link mx-4" id="pausadas-tab" data-bs-toggle="tab" data-bs-target="#pausadas"
+                    type="button">
+                    <i class="fas fa-pause-circle"></i> Tarefas Pausadas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="projetos-tab" data-bs-toggle="tab" data-bs-target="#projetos"
+                    type="button">
+                    <i class="fas fa-folder"></i> Por Projeto
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" id="usuariosTabItem" style="display: none;">
+                <button class="nav-link mx-4" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios"
+                    type="button">
+                    <i class="fas fa-users"></i> Por Usuário
+                </button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="relatorioTabContent">
+            <!-- Tarefas Atrasadas -->
+            <div class="tab-pane fade show active" id="atrasadas" role="tabpanel">
+                <div class="relatorio-card">
+                    <h4>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Tarefas Atrasadas
+                    </h4>
+                    <div class="mb-3 text-end">
+                        <button class="btn btn-exportar btn-sm" onclick="exportarRelatorio('atrasadas')">
+                            <i class="fas fa-download"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div id="listaAtrasadas">
+                        <div class="loading-spinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarefas Pausadas -->
+            <div class="tab-pane fade" id="pausadas" role="tabpanel">
+                <div class="relatorio-card">
+                    <h4>
+                        <i class="fas fa-pause-circle"></i>
+                        Tarefas Pausadas
+                    </h4>
+                    <div class="mb-3 text-end">
+                        <button class="btn btn-exportar btn-sm" onclick="exportarRelatorio('pausadas')">
+                            <i class="fas fa-download"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div id="listaPausadas">
+                        <div class="loading-spinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Por Projeto -->
+            <div class="tab-pane fade" id="projetos" role="tabpanel">
+                <div class="relatorio-card">
+                    <h4>
+                        <i class="fas fa-folder"></i>
+                        Relatório por Projeto
+                    </h4>
+                    <div class="mb-3 text-end">
+                        <button class="btn btn-exportar btn-sm" onclick="exportarRelatorio('projetos')">
+                            <i class="fas fa-download"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div id="listaProjetos">
+                        <div class="loading-spinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Por Usuário (Admin apenas) -->
+            <div class="tab-pane fade" id="usuarios" role="tabpanel">
+                <div class="relatorio-card">
+                    <h4>
+                        <i class="fas fa-users"></i>
+                        Relatório por Usuário
+                    </h4>
+                    <div class="mb-3 text-end">
+                        <button class="btn btn-exportar btn-sm" onclick="exportarRelatorio('usuarios')">
+                            <i class="fas fa-download"></i> Exportar CSV
+                        </button>
+                    </div>
+                    <div id="listaUsuarios">
+                        <div class="loading-spinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core e Dependências -->
+    <script src="js/core.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/utils.js"></script>
+    
+    <!-- Data e Renderização -->
+    <script src="js/data.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <!-- Modais -->
+    <script src="js/modals.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+    
+    <!-- Funcionalidades -->
+    <script src="js/complementos.js"></script>
+    <script src="js/taskManager.js"></script>
+    <script src="js/actions.js"></script>
+    
+    <!-- Inicialização -->
+    <script src="js/init.js"></script>
+
+    <!-- ✅ DEPOIS: Carregar relatorios.js (que usa taskManager) -->
+    <script src="relatorios.js"></script>
+</body>
+
+</html>
+
+<!-- Modal Editar Perfil (adicionado para páginas que não tinham) -->
+<div class="modal fade" id="modalEditarPerfil" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>Editar Perfil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarPerfil">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editNome" class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-control" id="editNome" required maxlength="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmail" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="editEmail" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" maxlength="50">
+                            <div class="form-text">Usado para menções (@username)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editFuncao" class="form-label">Função</label>
+                            <select class="form-select" id="editFuncao" disabled>
+                                <option value="usuario">Usuário</option>
+                                <option value="editor">Editor</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                            <div class="form-text">A função só pode ser alterada por um administrador</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editBio" class="form-label">Biografia</label>
+                        <textarea class="form-control" id="editBio" rows="3" maxlength="255" placeholder="Fale um pouco sobre você..."></textarea>
+                        <div class="form-text">
+                            <span id="contadorBio">0</span>/255 caracteres
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarPerfil()">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Alterar Senha (adicionado para páginas que não tinham) -->
+<div class="modal fade" id="modalAlterarSenha" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2"></i>Alterar Senha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAlterarSenha">
+                    <div class="mb-3">
+                        <label for="senhaAtual" class="form-label">Senha Atual *</label>
+                        <div class="password-input">
+                            <input type="password" class="form-control" id="senhaAtual" required>
+                            <button type="button" class="password-toggle" onclick="togglePasswordModal('senhaAtual')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="novaSenha" class="form-label">Nova Senha *</label>
+                        <div class="password-input">
+                            <input type="password" class="form-control" id="novaSenha" required>
+                            <button type="button" class="password-toggle" onclick="togglePasswordModal('novaSenha')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="strengthIndicator" class="form-text" style="display:none"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmarNovaSenha" class="form-label">Confirmar Nova Senha *</label>
+                        <input type="password" class="form-control" id="confirmarNovaSenha" required>
+                        <div id="senhaMatchText" class="form-text"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarNovaSenha()">
+                    <i class="fas fa-save"></i> Alterar Senha
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
