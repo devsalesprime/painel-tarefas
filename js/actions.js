@@ -1,28 +1,122 @@
 // ========== AÇÕES DE PROJETOS ==========
 
+// Função auxiliar para mostrar erros em modais genéricos
+function mostrarErroNoModal(mensagem, containerId = "modalNovoProjetoAlertas") {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle"></i> ${mensagem}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    container.innerHTML = "";
+  }, 5000);
+}
+
+// Função auxiliar para verificar se é admin ou editor
+async function verificarSeEhAdminOuEditor() {
+  const userData = taskManager.getCurrentUser();
+  return userData && (userData.funcao === 'admin' || userData.funcao === 'editor');
+}
+
 // actions.js - Corrigir chamadas POST
 async function criarProjetoRapido() {
-  // ... código anterior
+  // Verificar se é admin ou editor
+  const temPermissao = await verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    taskManager.mostrarErro("Apenas administradores e editores podem criar projetos");
+    return;
+  }
+
+  // Buscar nome do projeto dos dois possíveis inputs
+  const nomeProjeto = 
+    document.getElementById("novoProjetoNome")?.value?.trim() || 
+    document.getElementById("novoProjetoNomeModal")?.value?.trim();
+
+  if (!nomeProjeto) {
+    const mensagem = "Digite o nome do projeto!";
+    if (document.getElementById("modalNovoProjeto")?.classList.contains("show")) {
+      mostrarErroNoModal(mensagem, "modalNovoProjetoAlertas");
+    } else {
+      mostrarErroNoModalTarefa(mensagem);
+    }
+    return;
+  }
+
+  // Buscar datas (se existirem)
+  const dataInicio = document.getElementById("dataInicioProjeto")?.value;
+  const dataFim = document.getElementById("dataFimProjeto")?.value;
+  const descricao = document.getElementById("novoProjetoDescricao")?.value?.trim() || "";
 
   try {
     console.log("🚀 Enviando requisição para criar projeto...");
 
-    // ✅ CORREÇÃO: Usar URL correta
-    const dados = await taskManager.fetch("", {
+    const dados = await taskManager.fetch("api.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "criar_projeto_rapido",
         nome: nomeProjeto,
-        data_inicio: formatarData(dataInicio),
-        data_fim: formatarData(dataFim),
+        descricao: descricao,
+        data_inicio: dataInicio || null,
+        data_fim: dataFim || null,
       }),
     });
 
-    // ... resto do código
+    if (dados) {
+      taskManager.mostrarSucesso("✅ Projeto criado com sucesso!");
+      
+      // Limpar campos
+      if (document.getElementById("novoProjetoNome")) {
+        document.getElementById("novoProjetoNome").value = "";
+      }
+      if (document.getElementById("novoProjetoNomeModal")) {
+        document.getElementById("novoProjetoNomeModal").value = "";
+        document.getElementById("novoProjetoDescricao").value = "";
+        document.getElementById("dataInicioProjeto").value = "";
+        document.getElementById("dataFimProjeto").value = "";
+      }
+      
+      // Fechar modal se estiver aberto
+      const modalNovoProjeto = document.getElementById("modalNovoProjeto");
+      if (modalNovoProjeto?.classList.contains("show")) {
+        const modal = bootstrap.Modal.getInstance(modalNovoProjeto);
+        if (modal) modal.hide();
+      }
+      
+      // Ocultar container de criação rápida
+      const container = document.getElementById("criacaoProjetoContainer");
+      if (container) {
+        container.style.display = "none";
+      }
+      
+      // Recarregar projetos
+      await carregarProjetos();
+      
+      // Atualizar select de projetos se estiver no modal de tarefa
+      if (dados.projeto_id) {
+        const selectProjeto = document.getElementById("projeto");
+        if (selectProjeto) {
+          const option = document.createElement("option");
+          option.value = dados.projeto_id;
+          option.textContent = nomeProjeto;
+          option.selected = true;
+          selectProjeto.appendChild(option);
+        }
+      }
+    }
   } catch (error) {
     console.error("❌ Erro ao criar projeto:", error);
-    mostrarErroNoModal("Erro ao criar projeto: " + error.message);
+    const mensagem = "Erro ao criar projeto: " + error.message;
+    if (document.getElementById("modalNovoProjeto")?.classList.contains("show")) {
+      mostrarErroNoModal(mensagem, "modalNovoProjetoAlertas");
+    } else {
+      mostrarErroNoModalTarefa(mensagem);
+    }
   }
 }
 
@@ -196,9 +290,11 @@ async function deletarProjeto(projetoId) {
 // ========== EDIÇÃO DE PROJETO ==========
 
 function abrirModalEditarProjeto(projeto) {
-  const ehAdmin = taskManager.ehAdmin;
-  if (!ehAdmin) {
-    taskManager.mostrarErro("Apenas administradores podem editar projetos");
+  const userData = taskManager.getCurrentUser();
+  const temPermissao = userData && (userData.funcao === 'admin' || userData.funcao === 'editor');
+  
+  if (!temPermissao) {
+    taskManager.mostrarErro("Apenas administradores e editores podem editar projetos");
     return;
   }
 
@@ -217,10 +313,10 @@ function abrirModalEditarProjeto(projeto) {
       descInput.value = projeto.descricao || "";
 
       if (projeto.data_inicio) {
-        dataInicioInput.value = projeto.data_inicio.slice(0, 16);
+        dataInicioInput.value = projeto.data_inicio.slice(0, 10);
       }
       if (projeto.data_fim) {
-        dataFimInput.value = projeto.data_fim.slice(0, 16);
+        dataFimInput.value = projeto.data_fim.slice(0, 10);
       }
 
       // Mostrar/ocultar botões baseado no status
@@ -245,9 +341,9 @@ function abrirModalEditarProjeto(projeto) {
 }
 
 async function editarProjeto() {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
-    taskManager.mostrarErro("Apenas administradores podem editar projetos");
+  const temPermissao = await verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    taskManager.mostrarErro("Apenas administradores e editores podem editar projetos");
     return;
   }
 
@@ -276,7 +372,7 @@ async function editarProjeto() {
     return;
   }
 
-  const dados = await taskManager.fetch("", {
+  const dados = await taskManager.fetch("api.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -360,9 +456,9 @@ function deletarProjetoAtual() {
 // ========== AÇÕES DE TAREFAS ==========
 
 async function criarTarefa() {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
-    mostrarErroNoModalTarefa("Apenas administradores podem criar tarefas");
+  const temPermissao = await verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    mostrarErroNoModalTarefa("Apenas administradores e editores podem criar tarefas");
     return;
   }
 
@@ -382,19 +478,29 @@ async function criarTarefa() {
 
   // Validação de data/hora
   const agora = new Date();
-  const dataInicioObj = new Date(data_inicio);
-  const dataFimObj = new Date(data_fim);
+  agora.setHours(0, 0, 0, 0); // Normalizar para início do dia
+  
+  // Como os inputs são date (yyyy-mm-dd), o Date construtor assume UTC 00:00 se usar string,
+  // ou local 00:00 dependendo do navegador. Para garantir, criamos com time zerado.
+  // Ajuste: pegar os componentes da string para criar data local correta
+  const criarDataLocal = (dataString) => {
+      const [ano, mes, dia] = dataString.split('-').map(Number);
+      return new Date(ano, mes - 1, dia); // mês é 0-indexado
+  };
+
+  const dataInicioObj = criarDataLocal(data_inicio);
+  const dataFimObj = criarDataLocal(data_fim);
 
   if (dataInicioObj < agora) {
     mostrarErroNoModalTarefa(
-      "A data/hora de início não pode ser anterior ao momento atual!"
+      "A data de início não pode ser anterior a hoje!"
     );
     return;
   }
 
   if (dataFimObj < agora) {
     mostrarErroNoModalTarefa(
-      "A data/hora de término não pode ser anterior ao momento atual!"
+      "A data de término não pode ser anterior a hoje!"
     );
     return;
   }
@@ -474,9 +580,9 @@ async function criarTarefa() {
 }
 
 async function salvarTarefa() {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
-    mostrarErroNoModalEditar("Apenas administradores podem editar tarefas");
+  const temPermissao = await verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    mostrarErroNoModalEditar("Apenas administradores e editores podem editar tarefas");
     return;
   }
 
@@ -498,23 +604,32 @@ async function salvarTarefa() {
     return;
   }
 
-  // Validação de data/hora
+  // Validação de data
   const agora = new Date();
-  const dataInicioObj = new Date(dataInicio);
-  const dataFimObj = new Date(dataFim);
+  agora.setHours(0, 0, 0, 0); // Normalizar para início do dia
+
+  // Helper para criar data local (reaproveitar ou copiar lógica)
+  const criarDataLocal = (dataString) => {
+      if (!dataString) return null;
+      const [ano, mes, dia] = dataString.split('-').map(Number);
+      return new Date(ano, mes - 1, dia);
+  };
+
+  const dataInicioObj = criarDataLocal(dataInicio);
+  const dataFimObj = criarDataLocal(dataFim);
 
   // Permite editar datas passadas apenas se a tarefa já existia
   // Mas não permite datas futuras que sejam anteriores ao momento atual
   if (dataInicioObj < agora && status !== "concluida") {
     mostrarErroNoModalEditar(
-      "A data/hora de início não pode ser anterior ao momento atual para tarefas não concluídas!"
+      "A data de início não pode ser anterior a hoje para tarefas não concluídas!"
     );
     return;
   }
 
   if (dataFimObj < agora && status !== "concluida") {
     mostrarErroNoModalEditar(
-      "A data/hora de término não pode ser anterior ao momento atual para tarefas não concluídas!"
+      "A data de término não pode ser anterior a hoje para tarefas não concluídas!"
     );
     return;
   }

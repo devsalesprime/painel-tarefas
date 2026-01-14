@@ -321,7 +321,7 @@
 
     <!-- Scripts essenciais -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
 
     <!-- Lógica Principal em JavaScript -->
     <script>
@@ -484,25 +484,33 @@
         /*
             Função: salvarUsuario()
             - Envia requisição para atualizar função e status do usuário.
+            - CORREÇÃO: Trata o campo squad corretamente (não envia se vazio)
         */
         async function salvarUsuario() {
             if (!usuarioEditandoId) return;
 
             const funcao = document.getElementById('editUsuarioFuncao').value;
             const ativo = document.getElementById('editUsuarioAtivo').checked;
-            const squad = document.getElementById('editUsuarioSquad').value || null;
+            const squadValue = document.getElementById('editUsuarioSquad').value;
+
+            // ✅ CORREÇÃO: Só enviar squad se tiver valor
+            const payload = {
+                action: 'atualizar_usuario_admin',
+                usuario_id: usuarioEditandoId,
+                funcao: funcao,
+                ativo: ativo
+            };
+
+            // Adicionar squad apenas se houver valor
+            if (squadValue && squadValue.trim() !== '') {
+                payload.squad = squadValue;
+            }
 
             try {
                 const dados = await taskManager.fetch('api.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'atualizar_usuario_admin',
-                        usuario_id: usuarioEditandoId,
-                        funcao: funcao,
-                        ativo: ativo,
-                        squad: squad
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 if (dados) {
@@ -514,10 +522,9 @@
                 }
             } catch (error) {
                 console.error('Erro ao salvar usuário:', error);
-                taskManager.mostrarErro('Erro ao salvar usuário');
+                taskManager.mostrarErro('Erro ao salvar usuário: ' + error.message);
             }
         }
-
         /*
             Função: deletarUsuario()
             - Solicita confirmação e exclui o usuário via API.
@@ -589,22 +596,22 @@
     <script src="js/core.js"></script>
     <script src="js/main.js"></script>
     <script src="js/utils.js"></script>
-    
+
     <!-- Data e Renderização -->
     <script src="js/data.js"></script>
     <script src="js/render.js"></script>
     <script src="js/ui.js"></script>
-    
+
     <!-- Modais -->
     <script src="js/modals.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/profile.js"></script>
-    
+
     <!-- Funcionalidades -->
     <script src="js/complementos.js"></script>
     <script src="js/taskManager.js"></script>
     <script src="js/actions.js"></script>
-    
+
     <!-- Inicialização -->
     <script src="js/init.js"></script>
 </body>
@@ -651,7 +658,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="editBio" class="form-label">Biografia</label>
-                        <textarea class="form-control" id="editBio" rows="3" maxlength="255" placeholder="Fale um pouco sobre você..."></textarea>
+                        <textarea class="form-control" id="editBio" rows="3" maxlength="255"
+                            placeholder="Fale um pouco sobre você..."></textarea>
                         <div class="form-text">
                             <span id="contadorBio">0</span>/255 caracteres
                         </div>

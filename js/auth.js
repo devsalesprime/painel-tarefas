@@ -22,6 +22,9 @@ function carregarDadosUsuario() {
 
 function carregarInfoUsuario() {
   const userData = taskManager.getCurrentUser();
+  
+  console.log("🔍 carregarInfoUsuario chamada", userData);
+  
   if (userData) {
     const userName = document.getElementById("userName");
     const userRole = document.getElementById("userRole");
@@ -38,24 +41,44 @@ function carregarInfoUsuario() {
       userRole.innerHTML = `<span class="funcao-badge funcao-${userData.funcao}">${funcaoText}</span>`;
     }
 
-    // ✅ CORREÇÃO: Mostrar links de administração se for admin
-    if (userData.funcao === "admin") {
-      // Mostrar todos os elementos com classe admin-only
-      const adminElements = document.querySelectorAll(".admin-only");
-      adminElements.forEach((element) => {
-        element.style.display = "block";
-      });
-      console.log("✅ Botões de administração exibidos");
-    } else {
-      // Ocultar todos os elementos com classe admin-only
-      const adminElements = document.querySelectorAll(".admin-only");
-      adminElements.forEach((element) => {
-        element.style.display = "none";
-      });
-      console.log("ℹ️ Usuário não é admin - botões ocultos");
-    }
+    // ✅ CONTROLE DE VISIBILIDADE DE ELEMENTOS
+    const userRoleFunc = userData.funcao;
+    
+    // 1. Elementos exclusivos de ADMIN (apenas admin vê)
+    const adminElements = document.querySelectorAll(".admin-only");
+    adminElements.forEach(el => {
+        if (userRoleFunc === 'admin') {
+            if (el.tagName === 'BUTTON') {
+                el.style.cssText = 'display: inline-block !important; visibility: visible !important;';
+            } else if (el.tagName === 'LI') {
+                 el.style.cssText = 'display: list-item !important; visibility: visible !important;';
+            } else {
+                 el.style.cssText = 'display: block !important; visibility: visible !important;';
+            }
+        } else {
+            el.style.cssText = 'display: none !important; visibility: hidden !important;';
+        }
+    });
+
+    // 2. Elementos acessíveis por EDITOR (admin e editor veem)
+    const editorElements = document.querySelectorAll(".editor-access");
+    editorElements.forEach(el => {
+        if (userRoleFunc === 'admin' || userRoleFunc === 'editor') {
+             if (el.tagName === 'BUTTON') {
+                el.style.cssText = 'display: inline-block !important; visibility: visible !important;';
+            } else {
+                 el.style.cssText = 'display: block !important; visibility: visible !important;';
+            }
+        } else {
+            el.style.cssText = 'display: none !important; visibility: hidden !important;';
+        }
+    });
+
+    console.log(`✅ Permissões aplicadas para função: ${userRole}`);
 
     console.log("👤 Usuário:", userData.nome, "- Função:", userData.funcao);
+  } else {
+    console.error("❌ userData não encontrado!");
   }
 }
 
@@ -100,4 +123,26 @@ function adicionarLinkAdmin(userData) {
   }
 
   console.log("🔗 Link de administração adicionado ao menu");
+}
+
+// ✅ FUNÇÃO AUXILIAR PARA VERIFICAR PERMISSÕES
+function verificarPermissaoAdminOuEditor() {
+  const userData = taskManager.getCurrentUser();
+  return userData && (userData.funcao === 'admin' || userData.funcao === 'editor');
+}
+
+// ✅ FORÇAR ATUALIZAÇÃO DOS BOTÕES QUANDO O DOM ESTIVER PRONTO
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+      console.log("🚀 DOM Carregado - forçando atualização de botões");
+      carregarInfoUsuario();
+    }, 100);
+  });
+} else {
+  // DOM já está pronto
+  setTimeout(() => {
+    console.log("🚀 DOM já pronto - forçando atualização de botões");
+    carregarInfoUsuario();
+  }, 100);
 }

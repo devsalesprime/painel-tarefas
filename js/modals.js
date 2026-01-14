@@ -346,6 +346,7 @@ document.addEventListener("hidden.bs.modal", function () {
 
 async function abrirEditarTarefa(tarefaId, tabId = null) {
   const ehAdmin = await taskManager.verificarSeEhAdmin();
+  // Permissão de edição será verificada após carregar a tarefa
 
   taskManager.tarefaEditandoId = tarefaId;
 
@@ -358,6 +359,9 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
       taskManager.mostrarErro("Tarefa não encontrada");
       return;
     }
+
+    // Verificar permissão de edição com a tarefa carregada
+    const podeEditar = await taskManager.verificarPermissaoEdicao(tarefa);
 
     // Verificar se o modal de edição existe na página atual
     const modalEditarTarefa = document.getElementById("modalEditarTarefa");
@@ -377,11 +381,11 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
       { id: "editarDescricao", value: tarefa.descricao || "" },
       {
         id: "editarDataInicio",
-        value: tarefa.data_inicio ? tarefa.data_inicio.slice(0, 16) : "",
+        value: tarefa.data_inicio ? tarefa.data_inicio.slice(0, 10) : "",
       },
       {
         id: "editarDataFim",
-        value: tarefa.data_fim ? tarefa.data_fim.slice(0, 16) : "",
+        value: tarefa.data_fim ? tarefa.data_fim.slice(0, 10) : "",
       },
       { id: "editarStatus", value: tarefa.status || "pendente" },
       {
@@ -411,25 +415,35 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
       atualizarBarraProgressoEditar(tarefa.progresso || 0);
     }
 
-    // Carregar dados adicionais apenas se os containers existirem
+    // Carregar dados adicionais em paralelo para melhorar performance
+    const promises = [];
+
     if (document.getElementById("listaEtapasEditar")) {
-      await carregarEtapasEditar(tarefa.etapas || []);
+      promises.push(carregarEtapasEditar(tarefa.etapas || []));
     }
 
     if (document.getElementById("usuariosTarefa")) {
-      await carregarUsuariosTarefa(tarefaId);
+      promises.push(carregarUsuariosTarefa(tarefaId, podeEditar));
     }
 
     if (document.getElementById("listaComentarios")) {
-      await carregarComentariosTarefa(tarefaId);
+      promises.push(carregarComentariosTarefa(tarefaId, podeEditar));
     }
 
     if (document.getElementById("listaArquivos")) {
-      await carregarArquivosTarefa(tarefaId);
+      promises.push(carregarArquivosTarefa(tarefaId, podeEditar));
     }
 
-    // Configurar permissões apenas se for admin e os elementos existirem
-    if (!ehAdmin) {
+    // Aguardar todas as cargas secundárias (mas não bloquear a exibição inicial do modal se possível, 
+    // porém aqui estamos preenchendo o modal antes de exibir)
+    // Para UX instantânea, o ideal seria mostrar o modal e carregar isso depois, 
+    // mas vamos manter o await paralelo por segurança na estrutura atual.
+    await Promise.all(promises);
+
+    await Promise.all(promises);
+
+    // Configurar permissões: Se não pode editar, desabilita campos
+    if (!podeEditar) {
       const camposEditaveis = [
         "editarTitulo",
         "editarDescricao",
@@ -439,6 +453,7 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
         "editarPrioridade",
         "novaEtapaEditar",
         "usuarioInputEditar",
+        "novoComentario"
       ];
 
       camposEditaveis.forEach((id) => {
@@ -448,7 +463,14 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
         }
       });
 
-      // Esconder botões de ação para não-admin
+      // Desabilitar form de upload
+      const formUpload = document.getElementById("formUploadArquivo");
+      if (formUpload) {
+          const inputs = formUpload.querySelectorAll("input, button");
+          inputs.forEach(el => el.disabled = true);
+      }
+
+      // Esconder botões de ação para quem não pode editar
       const botoesAcao = document.querySelectorAll(
         "#modalEditarTarefa .btn-primary, #modalEditarTarefa .btn-danger"
       );
@@ -467,7 +489,7 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
           '<i class="fas fa-eye me-2"></i>Visualizar Tarefa';
       }
     } else {
-      // Se for admin, garantir que os campos estão editáveis
+      // Se pode editar, garantir que os campos estão editáveis
       const camposEditaveis = [
         "editarTitulo",
         "editarDescricao",
@@ -477,6 +499,7 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
         "editarPrioridade",
         "novaEtapaEditar",
         "usuarioInputEditar",
+        "novoComentario"
       ];
 
       camposEditaveis.forEach((id) => {
@@ -486,17 +509,32 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
         }
       });
 
-      // Mostrar botões de ação para admin
+      // Habilitar form de upload
+      const formUpload = document.getElementById("formUploadArquivo");
+      if (formUpload) {
+          const inputs = formUpload.querySelectorAll("input, button");
+          inputs.forEach(el => el.disabled = false);
+      }
+
+      // Mostrar botão de SALVAR para quem pode editar
+      const btnSalvar = document.querySelector("#modalEditarTarefa .btn-primary");
+      if (btnSalvar) btnSalvar.style.display = "inline-block";
+
+      // Restaurar visibilidade dos botões de ação (Comentar, Upload, Adicionar Etapa)
       const botoesAcao = document.querySelectorAll(
-        "#modalEditarTarefa .btn-primary, #modalEditarTarefa .btn-danger"
+        "#modalEditarTarefa .btn-primary"
       );
       botoesAcao.forEach((botao) => {
-        if (botao) {
           botao.style.display = "inline-block";
-        }
       });
 
-      // Garantir título correto para admin
+      // Botão DELETAR apenas para ADMIN
+      const btnDeletar = document.querySelector("#modalEditarTarefa .btn-danger");
+      if (btnDeletar) {
+        btnDeletar.style.display = ehAdmin ? "inline-block" : "none";
+      }
+
+      // Garantir título correto
       const tituloModal = document.querySelector(
         "#modalEditarTarefa .modal-title"
       );

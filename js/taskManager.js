@@ -2,12 +2,18 @@
 // Este arquivo contém as funções de CRUD de tarefas
 // A classe TaskManager é definida em core.js
 
+// Função auxiliar para verificar se é admin ou editor
+function verificarSeEhAdminOuEditor() {
+  const userData = taskManager.getCurrentUser();
+  return userData && (userData.funcao === 'admin' || userData.funcao === 'editor');
+}
+
 // ========== FUNÇÕES DE CRIAÇÃO DE TAREFAS ==========
 
 async function criarTarefa() {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
-    mostrarErroNoModalTarefa("Apenas administradores podem criar tarefas");
+  const temPermissao = verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    mostrarErroNoModalTarefa("Apenas administradores e editores podem criar tarefas");
     return;
   }
 
@@ -274,9 +280,9 @@ async function alterarPrioridadeTarefa(tarefaId, novaPrioridade) {
 // ========== FUNÇÃO DE SALVAMENTO ==========
 
 async function salvarTarefa() {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
-    mostrarErroNoModalEditar("Apenas administradores podem editar tarefas");
+  const temPermissao = verificarSeEhAdminOuEditor();
+  if (!temPermissao) {
+    mostrarErroNoModalEditar("Apenas administradores e editores podem editar tarefas");
     return;
   }
 

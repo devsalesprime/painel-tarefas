@@ -36,6 +36,7 @@ async function renderizarTarefas() {
   let todasAsTarefas = [];
   let projetosComTarefas = 0;
   let ehAdmin = false;
+  // podeEditar removido daqui pois depende da tarefa
 
   try {
     // ✅ CORREÇÃO: Chamada simples
@@ -50,7 +51,10 @@ async function renderizarTarefas() {
 
     // Limpa container e verifica permissões
     container.innerHTML = "";
+    // Limpa container e verifica permissões
+    container.innerHTML = "";
     ehAdmin = await taskManager.verificarSeEhAdmin();
+    // podeEditar removido
 
     // Percorre cada projeto para buscar suas tarefas
     for (const projeto of projetos) {
@@ -77,6 +81,7 @@ async function renderizarTarefas() {
         // Filtra tarefas conforme filtros ativos
         const tarefasFiltradas = filtrarTarefas(tarefasAtivas);
 
+        // Renderiza conforme o modo atual (lista ou kanban)
         // Renderiza conforme o modo atual (lista ou kanban)
         container.innerHTML +=
           viewMode === "kanban"
@@ -180,7 +185,7 @@ function renderizarProjetoKanban(projeto, tarefas, ehAdmin) {
             `;
     } else {
       tarefasColuna.forEach((tarefa) => {
-        html += gerarCardKanban(tarefa, ehAdmin);
+        html += gerarCardKanban(tarefa, ehAdmin); // Removido podeEditar global
         console.log("🧾 Dados da tarefa:", tarefa);
       });
     }
@@ -200,6 +205,21 @@ function renderizarProjetoKanban(projeto, tarefas, ehAdmin) {
 }
 
 function gerarCardKanban(tarefa, ehAdmin) {
+  // Verificação de permissão local (Síncrona)
+  // Replicando lógica simplificada: Admin ou (Editor + Atribuído)
+  const userData = taskManager.getCurrentUser();
+  let podeEditar = false;
+  
+  if (userData) {
+      if (ehAdmin) {
+          podeEditar = true;
+      } else if (userData.funcao === 'editor') {
+          // Verifica atribuição
+          if (tarefa.usuarios && Array.isArray(tarefa.usuarios)) {
+              podeEditar = tarefa.usuarios.some(u => u.id == userData.id || u.usuario_id == userData.id);
+          }
+      }
+  }
   const prioridadeInfo =
     prioridades[tarefa.prioridade] || prioridades["importante_nao_urgente"];
   const progresso = tarefa.progresso || 0;
@@ -312,9 +332,9 @@ function gerarCardKanban(tarefa, ehAdmin) {
             <div class="acoes-tarefa">
                 ${gerarBotoesStatus(tarefa, ehAdmin)}
                 ${
-                  ehAdmin
+                  podeEditar
                     ? `
-                    <button class="btn-acao btn-editar" onclick="abrirEditarTarefa(${tarefa.id})" title="Editar">
+                    <button class="btn-acao btn-editar" onclick="event.stopPropagation(); abrirEditarTarefa(${tarefa.id})" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
                 `
@@ -413,7 +433,7 @@ function renderizarProjetoLista(projeto, tarefas, ehAdmin) {
         `;
   } else {
     tarefas.forEach((tarefa) => {
-      html += gerarCardLista(tarefa, ehAdmin);
+      html += gerarCardLista(tarefa, ehAdmin); // Removido podeEditar global
     });
   }
 
@@ -426,6 +446,19 @@ function renderizarProjetoLista(projeto, tarefas, ehAdmin) {
 }
 
 function gerarCardLista(tarefa, ehAdmin) {
+  // Verificação de permissão local (Síncrona)
+  const userData = taskManager.getCurrentUser();
+  let podeEditar = false;
+  
+  if (userData) {
+      if (ehAdmin) {
+          podeEditar = true;
+      } else if (userData.funcao === 'editor') {
+          if (tarefa.usuarios && Array.isArray(tarefa.usuarios)) {
+              podeEditar = tarefa.usuarios.some(u => u.id == userData.id || u.usuario_id == userData.id);
+          }
+      }
+  }
   const prioridadeInfo =
     prioridades[tarefa.prioridade] || prioridades["importante_nao_urgente"];
   const progresso = tarefa.progresso || 0;
@@ -561,9 +594,9 @@ function gerarCardLista(tarefa, ehAdmin) {
                 <div class="acoes-tarefa">
                     ${gerarBotoesStatus(tarefa, ehAdmin)}
                     ${
-                      ehAdmin
+                      podeEditar
                         ? `
-                        <button class="btn btn-sm btn-outline-primary" onclick="abrirEditarTarefa(${tarefa.id})" title="Editar">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); abrirEditarTarefa(${tarefa.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
                     `

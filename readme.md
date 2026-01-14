@@ -713,6 +713,268 @@ tarefas (1) ──── (N) etapas
 
 ---
 
+## 🔄 Arquitetura Modular JavaScript
+
+### Migração de Monolito para Módulos
+
+O sistema foi migrado de um arquivo monolítico (`app.js` com 5.333 linhas) para uma **arquitetura modular** com 15 arquivos organizados por responsabilidade:
+
+#### Estrutura de Módulos
+
+```
+js/
+├── 🔷 CORE (Fundação)
+│   ├── core.js (7 KB) - TaskManager, autenticação base
+│   └── main.js (1 KB) - Constantes globais
+│
+├── 🔷 UTILIDADES
+│   └── utils.js (15 KB) - Funções auxiliares
+│
+├── 🔷 DATA (Gerenciamento de Dados)
+│   └── data.js (13 KB) - Operações com projetos/tarefas
+│
+├── 🔷 INTERFACE (UI)
+│   ├── render.js (23 KB) - Renderização visual
+│   ├── ui.js (13 KB) - Componentes de interface
+│   └── modals.js (22 KB) - Modais e drag-and-drop
+│
+├── 🔷 AUTENTICAÇÃO
+│   ├── auth.js (3 KB) - Funções de autenticação
+│   └── profile.js (7 KB) - Perfil do usuário
+│
+├── 🔷 FUNCIONALIDADES
+│   ├── complementos.js (18 KB) - Funcionalidades extras
+│   ├── taskManager.js (8 KB) - CRUD de tarefas
+│   └── actions.js (22 KB) - Comentários, arquivos, etapas
+│
+├── 🔷 INICIALIZAÇÃO
+│   ├── init.js (14 KB) - Setup e DOMContentLoaded
+│   └── loader.js (1 KB) - Indicador de carregamento
+│
+└── 🔷 DEBUG (Opcional)
+    └── debug.js (4 KB) - Ferramentas de debug
+```
+
+#### Ordem de Carregamento (Crítica)
+
+A ordem de carregamento dos scripts é **essencial** para o funcionamento correto:
+
+```html
+<!-- Core e Dependências -->
+<script src="js/core.js"></script>         <!-- TaskManager -->
+<script src="js/main.js"></script>         <!-- Constantes -->
+<script src="js/utils.js"></script>        <!-- Utilitários -->
+
+<!-- Data e Renderização -->
+<script src="js/data.js"></script>         <!-- Dados -->
+<script src="js/render.js"></script>       <!-- Renderização -->
+<script src="js/ui.js"></script>           <!-- Interface -->
+
+<!-- Modais -->
+<script src="js/modals.js"></script>       <!-- Modais/Drag -->
+<script src="js/auth.js"></script>         <!-- Autenticação -->
+<script src="js/profile.js"></script>      <!-- Perfil -->
+
+<!-- Funcionalidades -->
+<script src="js/complementos.js"></script> <!-- Extras -->
+<script src="js/taskManager.js"></script>  <!-- Tarefas -->
+<script src="js/actions.js"></script>      <!-- Ações -->
+
+<!-- Inicialização -->
+<script src="js/init.js"></script>         <!-- Init (ÚLTIMO) -->
+
+<!-- Debug (opcional) -->
+<script src="js/debug.js"></script>
+```
+
+#### Comandos de Debug (Console do Navegador)
+
+```javascript
+verificar()        // Verifica todos os módulos carregados
+testar()          // Testa conexão com API
+autenticacao()    // Mostra status de autenticação
+estado()          // Exibe estado da aplicação
+limpar()          // Limpa cache da aplicação
+```
+
+#### Benefícios da Arquitetura Modular
+
+- ✅ Código organizado e estruturado
+- ✅ Mais fácil de manter
+- ✅ Reutilização de módulos
+- ✅ Melhor performance (cache de scripts)
+- ✅ Debug mais eficiente
+- ✅ Colaboração em equipe facilitada
+- ✅ Testes mais granulares
+- ✅ Escalabilidade melhorada
+
+---
+
+## 🔐 Configuração de Variáveis de Ambiente
+
+### Visão Geral
+
+Este projeto utiliza variáveis de ambiente para armazenar credenciais e configurações sensíveis de forma segura através da biblioteca `vlucas/phpdotenv`.
+
+### Configuração Inicial
+
+#### 1. Instalar Dependências
+
+```bash
+composer install
+```
+
+#### 2. Criar Arquivo .env
+
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+#### 3. Configurar Variáveis
+
+Edite o arquivo `.env` com suas credenciais reais:
+
+```env
+# ========== CONFIGURAÇÕES DO BANCO DE DADOS ==========
+DB_HOST=localhost
+DB_NAME=task_panel
+DB_USER=root
+DB_PASS=sua_senha_aqui
+
+# ========== CONFIGURAÇÕES DE SEGURANÇA ==========
+JWT_SECRET=sua_chave_secreta_unica_aqui
+
+# ========== CONFIGURAÇÕES DE E-MAIL (SMTP) ==========
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=seu_email@gmail.com
+SMTP_PASSWORD=sua_senha_de_app_gmail
+SMTP_FROM_EMAIL=naoresponda@seudominio.com
+SMTP_FROM_NAME=Sistema de Tarefas
+
+# ========== CONFIGURAÇÕES GERAIS ==========
+TIME_ZONE=America/Sao_Paulo
+AMBIENTE=desenvolvimento
+MAX_FILE_SIZE=5242880
+SESSION_LIFETIME=604800
+```
+
+### Variáveis Obrigatórias
+
+#### Banco de Dados
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `DB_HOST` | Host do banco de dados | `localhost` |
+| `DB_NAME` | Nome do banco de dados | `task_panel` |
+| `DB_USER` | Usuário do banco | `root` |
+| `DB_PASS` | Senha do banco | `senha123` |
+
+#### Segurança
+
+| Variável | Descrição | Como Gerar |
+|----------|-----------|------------|
+| `JWT_SECRET` | Chave secreta para JWT | `php -r "echo bin2hex(random_bytes(32));"` |
+
+#### E-mail (SMTP)
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `SMTP_HOST` | Servidor SMTP | `smtp.gmail.com` |
+| `SMTP_PORT` | Porta SMTP | `587` (TLS) ou `465` (SSL) |
+| `SMTP_USERNAME` | E-mail de envio | `seu@email.com` |
+| `SMTP_PASSWORD` | Senha de app | Ver configuração Gmail abaixo |
+| `SMTP_FROM_EMAIL` | E-mail remetente | `noreply@dominio.com` |
+| `SMTP_FROM_NAME` | Nome do remetente | `Sistema de Tarefas` |
+
+### Configuração do Gmail
+
+Para usar o Gmail como servidor SMTP:
+
+1. **Ativar Verificação em 2 Etapas**
+   - Acesse [myaccount.google.com](https://myaccount.google.com)
+   - Vá em **Segurança** → Ative **Verificação em duas etapas**
+
+2. **Gerar Senha de App**
+   - Acesse [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   - Selecione **App**: E-mail
+   - Selecione **Dispositivo**: Outro (nome personalizado)
+   - Digite: "Task Panel"
+   - Clique em **Gerar**
+   - Copie a senha de 16 caracteres gerada
+   - Use essa senha em `SMTP_PASSWORD`
+
+### Outras Configurações SMTP
+
+#### Microsoft Outlook/Office 365
+
+```env
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USERNAME=seu@outlook.com
+SMTP_PASSWORD=sua_senha
+```
+
+#### SendGrid
+
+```env
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USERNAME=apikey
+SMTP_PASSWORD=sua_api_key_sendgrid
+```
+
+#### Mailgun
+
+```env
+SMTP_HOST=smtp.mailgun.org
+SMTP_PORT=587
+SMTP_USERNAME=postmaster@seu-dominio.mailgun.org
+SMTP_PASSWORD=sua_senha_mailgun
+```
+
+### Boas Práticas de Segurança
+
+#### ✅ Fazer
+
+- ✅ **NUNCA** commite o arquivo `.env` no Git (já está no `.gitignore`)
+- ✅ Use `.env.example` como template
+- ✅ Gere uma `JWT_SECRET` única para produção
+- ✅ Use senhas fortes para o banco de dados
+- ✅ Em produção, mude `AMBIENTE=producao`
+
+#### ❌ Não Fazer
+
+- ❌ Não compartilhe seu arquivo `.env`
+- ❌ Não use a mesma `JWT_SECRET` em desenvolvimento e produção
+- ❌ Não versione credenciais no código
+- ❌ Não use senhas fracas
+
+### Ambientes
+
+#### Desenvolvimento
+```env
+AMBIENTE=desenvolvimento
+```
+- Exibe erros detalhados
+- Logs verbosos
+- Validações relaxadas
+
+#### Produção
+```env
+AMBIENTE=producao
+```
+- Oculta erros do usuário
+- Logs apenas em arquivo
+- Validações rigorosas
+- **IMPORTANTE**: Use HTTPS!
+
+---
+
 ## 📝 Licença
 
 Este projeto é proprietário. Todos os direitos reservados.

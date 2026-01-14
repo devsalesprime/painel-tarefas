@@ -26,75 +26,98 @@ class TaskManager {
     console.log("📋 TaskManager inicializado");
   }
 
-  async fetch(url, options = {}) {
-    try {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        if (!options.headers) {
-          options.headers = {};
-        }
-        options.headers["Authorization"] = "Bearer " + token;
+async fetch(url, options = {}) {
+  try {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      if (!options.headers) {
+        options.headers = {};
       }
-
-      // Construir URL completa se apenas o action foi passado
-      let fullUrl = url;
-      if (!url.startsWith('http') && !url.startsWith('/') && !url.includes('api.php')) {
-        // Se é apenas uma action, construir a URL completa
-        if (options.method === 'POST') {
-          fullUrl = `api.php`;
-          // Para POST, adicionar action ao body
-          if (!options.body) {
-            options.body = JSON.stringify({ action: url });
-          } else if (typeof options.body === 'string') {
-            const bodyData = JSON.parse(options.body);
-            bodyData.action = url;
-            options.body = JSON.stringify(bodyData);
-          }
-        } else {
-          // Para GET, adicionar action à URL
-          fullUrl = `api.php?action=${url}`;
-        }
-      }
-
-      console.log(`🔗 Requisição: ${fullUrl}`, {
-        metodo: options.method || 'GET',
-        comToken: !!token
-      });
-
-      const response = await fetch(fullUrl, options);
-
-      if (response.status === 401) {
-        this.logout();
-        throw new Error("Token expirado ou inválido");
-      }
-
-      const responseText = await response.text();
-
-      if (!responseText) {
-        throw new Error("Resposta vazia do servidor");
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error("❌ Erro ao parsear JSON:", parseError);
-        console.error("📄 Resposta recebida:", responseText.substring(0, 500));
-        throw new Error("Resposta inválida do servidor - não é JSON");
-      }
-
-      if (!data.sucesso) {
-        throw new Error(data.erro || "Erro ao processar requisição");
-      }
-
-      return data.dados;
-    } catch (error) {
-      console.error("💥 Erro na comunicação com o servidor:", error);
-      this.mostrarErro("Erro na comunicação com o servidor: " + error.message);
-      throw error;
+      options.headers["Authorization"] = "Bearer " + token;
     }
-  }
 
+    // Construir URL completa
+    let fullUrl = url;
+    let action = url;
+    
+    // Se a URL contém uma barra (ex: "atualizar_tarefa/123"), extrair ação
+    if (url.includes('/') && !url.startsWith('http') && !url.startsWith('/')) {
+      const parts = url.split('/');
+      action = parts[0]; // "atualizar_tarefa"
+      
+      // Manter o ID na URL para GET ou adicionar ao body para POST
+      if (options.method === 'POST') {
+        // Para POST, adicionar o ID ao body
+        if (!options.body) {
+          options.body = JSON.stringify({ 
+            action: action,
+            id: parts[1] 
+          });
+        } else if (typeof options.body === 'string') {
+          const bodyData = JSON.parse(options.body);
+          bodyData.action = action;
+          bodyData.id = parts[1];
+          options.body = JSON.stringify(bodyData);
+        }
+        fullUrl = `api.php`;
+      } else {
+        // Para GET, construir URL com parâmetros
+        fullUrl = `api.php?action=${action}&id=${parts[1]}`;
+      }
+    } else if (!url.startsWith('http') && !url.startsWith('/') && !url.includes('api.php')) {
+      // URL sem parâmetros
+      if (options.method === 'POST') {
+        fullUrl = `api.php`;
+        if (!options.body) {
+          options.body = JSON.stringify({ action: url });
+        } else if (typeof options.body === 'string') {
+          const bodyData = JSON.parse(options.body);
+          bodyData.action = url;
+          options.body = JSON.stringify(bodyData);
+        }
+      } else {
+        fullUrl = `api.php?action=${url}`;
+      }
+    }
+
+    console.log(`🔗 Requisição: ${fullUrl}`, {
+      metodo: options.method || 'GET',
+      comToken: !!token
+    });
+
+    const response = await fetch(fullUrl, options);
+
+    if (response.status === 401) {
+      this.logout();
+      throw new Error("Token expirado ou inválido");
+    }
+
+    const responseText = await response.text();
+
+    if (!responseText) {
+      throw new Error("Resposta vazia do servidor");
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("❌ Erro ao parsear JSON:", parseError);
+      console.error("📄 Resposta recebida:", responseText.substring(0, 500));
+      throw new Error("Resposta inválida do servidor - não é JSON");
+    }
+
+    if (!data.sucesso) {
+      throw new Error(data.erro || "Erro ao processar requisição");
+    }
+
+    return data.dados;
+  } catch (error) {
+    console.error("💥 Erro na comunicação com o servidor:", error);
+    this.mostrarErro("Erro na comunicação com o servidor: " + error.message);
+    throw error;
+  }
+}
   logout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");
@@ -208,6 +231,39 @@ class TaskManager {
     } catch (error) {
       console.error("❌ Erro ao verificar admin:", error);
       this.ehAdmin = false;
+      return false;
+    }
+  }
+
+  async verificarPermissaoEdicao(tarefa = null) {
+    try {
+      const userData = this.getCurrentUser();
+      
+      if (!userData) return false;
+
+      // Admin pode tudo
+      if (userData.funcao === "admin") return true;
+
+      // Editor precisa estar atribuído à tarefa (só se a tarefa for fornecida)
+      if (userData.funcao === "editor") {
+        if (!tarefa) {
+          // Se não passar tarefa (ex: criar nova), permite base
+          return true;
+        }
+
+        // Verifica se o usuário está na lista de usuários da tarefa
+        if (tarefa.usuarios && Array.isArray(tarefa.usuarios)) {
+            const estaAtribuido = tarefa.usuarios.some(u => u.id == userData.id || u.usuario_id == userData.id);
+            if (estaAtribuido) return true;
+        }
+        
+        console.warn("🚫 Editor sem permissão: não está atribuído à tarefa", tarefa.id);
+        return false;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("❌ Erro ao verificar permissão de edição:", error);
       return false;
     }
   }

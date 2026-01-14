@@ -24,8 +24,9 @@ function formatarDataHora(dataString) {
 
   const dia = data.getDate();
   const mes = meses[data.getMonth()];
-  const horas = data.getHours().toString().padStart(2, "0");
-  const minutos = data.getMinutes().toString().padStart(2, "0");
+  // Horas removidas conforme solicitacao
+  // const horas = data.getHours().toString().padStart(2, "0");
+  // const minutos = data.getMinutes().toString().padStart(2, "0");
 
   return `${mes} ${dia}`;
 }
@@ -36,7 +37,11 @@ function formatarDataProjeto(dataString) {
   const data = new Date(dataString);
   if (isNaN(data.getTime())) return "Data inválida";
 
-  return data.toLocaleDateString("pt-BR");
+  return data.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
 }
 
 function formatarData(dataString) {
@@ -48,9 +53,7 @@ function formatarData(dataString) {
   return data.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    year: "numeric"
   });
 }
 
@@ -122,70 +125,18 @@ function togglePasswordModal(inputId) {
   }
 }
 
-// ========== FUNÇÕES AUXILIARES PARA DATAS ==========
-function formatarDataHora(dataString) {
-  if (!dataString) return "Não definida";
+// ========== TOOLTIPS ==========
 
-  const data = new Date(dataString);
-  if (isNaN(data.getTime())) return "Data inválida";
-
-  // Meses abreviados em português
-  const meses = [
-    "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-    "Jul", "Ago", "Set", "Out", "Nov", "Dez",
-  ];
-
-  const dia = data.getDate();
-  const mes = meses[data.getMonth()];
-  const horas = data.getHours().toString().padStart(2, "0");
-  const minutos = data.getMinutes().toString().padStart(2, "0");
-
-  return `${mes} ${dia}`;
-}
-
-function formatarDataProjeto(dataString) {
-  if (!dataString) return "Não definida";
-
-  const data = new Date(dataString);
-  if (isNaN(data.getTime())) return "Data inválida";
-
-  return data.toLocaleDateString("pt-BR");
-}
-
-function formatarData(dataString) {
-  if (!dataString) return "Não definida";
-
-  const data = new Date(dataString);
-  if (isNaN(data.getTime())) return "Data inválida";
-
-  return data.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+function inicializarTooltips() {
+  const tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  );
+  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
   });
 }
 
-// ========== FUNÇÕES AUXILIARES GERAIS ==========
-function validarEmail(email) {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-}
-
-function togglePasswordModal(inputId) {
-  const input = document.getElementById(inputId);
-  const button = input.parentNode.querySelector(".password-toggle");
-  const icon = button.querySelector("i");
-
-  if (input.type === "password") {
-    input.type = "text";
-    icon.className = "fas fa-eye-slash";
-  } else {
-    input.type = "password";
-    icon.className = "fas fa-eye";
-  }
-}
+// ========== FUNÇÕES AUXILIARES PARA RENDERIZAÇÃO E CACHE ==========
 
 function limparCacheForcado() {
   console.log("🧹 Limpando cache forçado...");
@@ -198,9 +149,11 @@ function limparCacheForcado() {
   }
   
   // Forçar recarregamento de projetos
-  carregarProjetos().then(() => {
-    console.log("✅ Projetos recarregados após limpeza de cache");
-  });
+  if (typeof carregarProjetos === 'function') {
+      carregarProjetos().then(() => {
+        console.log("✅ Projetos recarregados após limpeza de cache");
+      });
+  }
   
   // Limpar localStorage temporário se existir
   const keysToRemove = [];
@@ -214,43 +167,6 @@ function limparCacheForcado() {
   keysToRemove.forEach(key => localStorage.removeItem(key));
 }
 
-function getFileIcon(tipo) {
-  if (tipo.includes("pdf")) return "fa-file-pdf text-danger";
-  if (tipo.includes("image")) return "fa-file-image text-success";
-  if (tipo.includes("word") || tipo.includes("document")) return "fa-file-word text-primary";
-  if (tipo.includes("excel") || tipo.includes("spreadsheet")) return "fa-file-excel text-success";
-  if (tipo.includes("zip") || tipo.includes("rar") || tipo.includes("tar")) return "fa-file-archive text-warning";
-  if (tipo.includes("text") || tipo.includes("txt")) return "fa-file-alt text-secondary";
-  return "fa-file text-secondary";
-}
-
-// ✅ ADICIONAR: Inicializar tooltips do Bootstrap
-function inicializarTooltips() {
-  const tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  );
-  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-  console.log("✅ Tooltips inicializados:", tooltipList.length);
-}
-
-// TESTE TEMPORÁRIO
-function testeContainer() {
-  const container = document.getElementById("projetosContainer");
-  console.log("🔍 Teste Container:", {
-    existe: !!container,
-    html: container ? container.outerHTML : "não existe",
-    parent: container ? container.parentElement : "sem parent",
-  });
-
-  // Forçar criação se não existir
-  if (!container) {
-    criarInterfaceFallback();
-  }
-}
-
-// ========== FUNÇÕES AUXILIARES PARA RENDERIZAÇÃO ==========
 
 function gerarBotoesStatus(tarefa, ehAdmin) {
   if (!ehAdmin) return "";
@@ -258,31 +174,31 @@ function gerarBotoesStatus(tarefa, ehAdmin) {
   let botoes = "";
   if (tarefa.status === "iniciada") {
     botoes = `
-            <button class="btn-acao btn-status" onclick="pausarTarefa(${tarefa.id})" title="Pausar">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); pausarTarefa(${tarefa.id})" title="Pausar">
                 <i class="fas fa-pause"></i> Pausar
             </button>
-            <button class="btn-acao btn-status" onclick="concluirTarefa(${tarefa.id})" title="Concluir">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); concluirTarefa(${tarefa.id})" title="Concluir">
                 <i class="fas fa-check"></i> Concluir
             </button>
         `;
   } else if (tarefa.status === "pausada") {
     botoes = `
-            <button class="btn-acao btn-status" onclick="iniciarTarefa(${tarefa.id})" title="Retomar">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); iniciarTarefa(${tarefa.id})" title="Retomar">
                 <i class="fas fa-play"></i>
             </button>
-            <button class="btn-acao btn-status" onclick="concluirTarefa(${tarefa.id})" title="Concluir">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); concluirTarefa(${tarefa.id})" title="Concluir">
                 <i class="fas fa-check"></i>
             </button>
         `;
   } else if (tarefa.status === "concluida") {
     botoes = `
-            <button class="btn-acao btn-status" onclick="reabrirTarefa(${tarefa.id})" title="Reabrir">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); reabrirTarefa(${tarefa.id})" title="Reabrir">
                 <i class="fas fa-undo"></i>
             </button>
         `;
   } else {
     botoes = `
-            <button class="btn-acao btn-status" onclick="iniciarTarefa(${tarefa.id})" title="Iniciar">
+            <button class="btn-acao btn-status" onclick="event.stopPropagation(); iniciarTarefa(${tarefa.id})" title="Iniciar">
                 <i class="fas fa-play"></i>
             </button>
         `;
@@ -339,7 +255,6 @@ function botoesAdminProjeto(projeto) {
 
 // ========== MENSAGENS DE ERRO E ESTADO VAZIO ==========
 
-// Mostra mensagem quando não há projetos cadastrados
 function criarMensagemSemProjetos() {
   return `
         <div class="text-center p-5">
@@ -353,7 +268,6 @@ function criarMensagemSemProjetos() {
     `;
 }
 
-// Mostra mensagem quando existem projetos, mas estão vazios
 function criarMensagemSemTarefas(ehAdmin) {
   return `
         <div class="text-center p-5">
@@ -424,23 +338,6 @@ function criarErroProjeto(nomeProjeto) {
         </div>
     `;
 }
-
-// ========== VALIDAÇÃO DE DATAS ==========
-
-function validarDatas() {
-  const dataInicio = document.getElementById("dataInicio");
-  const dataFim = document.getElementById("dataFim");
-
-  if (dataInicio && dataFim && dataInicio.value && dataFim.value) {
-    if (new Date(dataFim.value) < new Date(dataInicio.value)) {
-      dataFim.classList.add("is-invalid");
-    } else {
-      dataFim.classList.remove("is-invalid");
-    }
-  }
-}
-
-// ========== FUNÇÕES AUXILIARES PARA URL ==========
 
 function construirUrlAPI(acao, parametros = {}) {
   let url = `action=${acao}`;

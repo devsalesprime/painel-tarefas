@@ -34,10 +34,20 @@ function renderizarUsuariosSelecionados() {
 }
 
 async function adicionarUsuarioTarefaEditando(usuario_id) {
-  const ehAdmin = await taskManager.verificarSeEhAdmin();
-  if (!ehAdmin) {
+  // Obter tarefa atual para verificar permissão
+  let temPermissao = await taskManager.verificarSeEhAdmin();
+  
+  if (!temPermissao && taskManager.tarefaEditandoId) {
+    // Se não é admin, verifica se é editor atribuído
+    const tarefa = await taskManager.fetch(`api.php?action=obter_tarefa&tarefa_id=${taskManager.tarefaEditandoId}`);
+    if (tarefa) {
+        temPermissao = await taskManager.verificarPermissaoEdicao(tarefa);
+    }
+  }
+
+  if (!temPermissao) {
     taskManager.mostrarErro(
-      "Apenas administradores podem adicionar usuários às tarefas"
+      "Você não tem permissão para adicionar usuários a esta tarefa"
     );
     return;
   }
@@ -72,10 +82,19 @@ async function adicionarUsuarioTarefaEditando(usuario_id) {
 
 async function removerUsuarioTarefaEditando(usuario_id) {
   try {
-    const ehAdmin = await taskManager.verificarSeEhAdmin();
-    if (!ehAdmin) {
+    // Verificar permissão
+    let temPermissao = await taskManager.verificarSeEhAdmin();
+  
+    if (!temPermissao && taskManager.tarefaEditandoId) {
+        const tarefa = await taskManager.fetch(`api.php?action=obter_tarefa&tarefa_id=${taskManager.tarefaEditandoId}`);
+        if (tarefa) {
+            temPermissao = await taskManager.verificarPermissaoEdicao(tarefa);
+        }
+    }
+
+    if (!temPermissao) {
       taskManager.mostrarErro(
-        "Apenas administradores podem remover usuários das tarefas"
+        "Você não tem permissão para remover usuários desta tarefa"
       );
       return;
     }
@@ -246,6 +265,21 @@ async function adicionarComentario() {
   const currentUser = taskManager.getCurrentUser();
   if (!currentUser) {
     taskManager.mostrarErro("Usuário não autenticado");
+    return;
+  }
+
+  // Verificar permissão
+  let temPermissao = await taskManager.verificarSeEhAdmin();
+  
+  if (!temPermissao && taskManager.tarefaEditandoId) {
+    const tarefa = await taskManager.fetch(`api.php?action=obter_tarefa&tarefa_id=${taskManager.tarefaEditandoId}`);
+    if (tarefa) {
+        temPermissao = await taskManager.verificarPermissaoEdicao(tarefa);
+    }
+  }
+
+  if (!temPermissao) {
+    taskManager.mostrarErro("Você não tem permissão para comentar nesta tarefa");
     return;
   }
 
@@ -478,11 +512,11 @@ async function handleDrop(e) {
         action = "pausar_tarefa"; // Para voltar para pendente
     }
 
-    const dados = await taskManager.fetch("", {
+    // CORREÇÃO: Passar a ação como string no primeiro parâmetro
+    const dados = await taskManager.fetch(action, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: action,
         tarefa_id: parseInt(tarefaId),
       }),
     });
@@ -494,7 +528,7 @@ async function handleDrop(e) {
     }
   } catch (error) {
     console.error("❌ Erro ao mover tarefa:", error);
-    taskManager.mostrarErro("Erro ao mover tarefa");
+    taskManager.mostrarErro("Erro ao mover tarefa: " + error.message);
   }
 }
 

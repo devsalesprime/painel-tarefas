@@ -46,17 +46,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ehAdmin = await taskManager.verificarSeEhAdmin();
   console.log("👮 É admin?", ehAdmin);
 
-  // Controlar visibilidade dos botões de ação
-  const btnNovaTarefa = document.querySelector('[data-bs-target="#modalNovaTarefa"]');
-  const btnNovoProjetoHeader = document.getElementById("btnNovoProjetoHeader");
-
-  if (btnNovaTarefa && !ehAdmin) {
-    btnNovaTarefa.style.display = "none";
-  }
-  if (btnNovoProjetoHeader && !ehAdmin) {
-    btnNovoProjetoHeader.style.display = "none";
-  }
-
+  // ✅ PERMISSÕES: Controladas via auth.js (classes .admin-only e .editor-access)
+  // O código anterior foi removido para evitar conflitos.
+  
   // Carregar sistema
   console.log("📄 Iniciando carregamento do sistema...");
   await carregarProjetos();
@@ -66,8 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   console.log("✅ Sistema carregado com sucesso");
 
-  // Executar o teste do container
-  setTimeout(testeContainer, 1000);
+  // Executar o teste do container (removido para evitar erro)
 });
 
 // Configuração inicial de eventos dos modais
@@ -107,20 +98,25 @@ document.addEventListener("DOMContentLoaded", function () {
   const dataInicioInput = document.getElementById("dataInicio");
   const dataFimInput = document.getElementById("dataFim");
 
-  // Define data/hora mínima como agora
+  // Define data mínima como hoje
   const agora = new Date();
-  const agoraFormatado = agora.toISOString().slice(0, 16);
+  agora.setHours(0, 0, 0, 0);
+  const agoraFormatado = agora.toISOString().slice(0, 10); // Apenas YYYY-MM-DD
 
   if (dataInicioInput) {
     dataInicioInput.min = agoraFormatado;
 
     // Validação em tempo real
     dataInicioInput.addEventListener("change", function () {
-      const dataSelecionada = new Date(this.value);
+      if (!this.value) return;
+      
+      const [ano, mes, dia] = this.value.split('-').map(Number);
+      const dataSelecionada = new Date(ano, mes - 1, dia);
+      
       if (dataSelecionada < agora) {
         this.value = agoraFormatado;
         mostrarErroNoModalTarefa(
-          "Data/hora de início não pode ser anterior ao momento atual!"
+          "A data de início não pode ser anterior a hoje!"
         );
       } else {
         limparMensagensModalTarefa();
@@ -138,11 +134,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Validação em tempo real
     dataFimInput.addEventListener("change", function () {
-      const dataSelecionada = new Date(this.value);
+      if (!this.value) return;
+
+      const [ano, mes, dia] = this.value.split('-').map(Number);
+      const dataSelecionada = new Date(ano, mes - 1, dia);
+
       if (dataSelecionada < agora) {
         this.value = agoraFormatado;
         mostrarErroNoModalTarefa(
-          "Data/hora de término não pode ser anterior ao momento atual!"
+          "A data de término não pode ser anterior a hoje!"
         );
       } else {
         limparMensagensModalTarefa();
@@ -150,11 +150,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Validação em relação à data de início
       if (dataInicioInput && dataInicioInput.value) {
-        const dataInicio = new Date(dataInicioInput.value);
+        const [anoIni, mesIni, diaIni] = dataInicioInput.value.split('-').map(Number);
+        const dataInicio = new Date(anoIni, mesIni - 1, diaIni);
+        
         if (dataSelecionada < dataInicio) {
           this.value = dataInicioInput.value;
           mostrarErroNoModalTarefa(
-            "Data/hora de término não pode ser anterior à data/hora de início!"
+            "A data de término não pode ser anterior à data de início!"
           );
         } else {
           limparMensagensModalTarefa();
@@ -199,7 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Atualizar data/hora mínima
       const agora = new Date();
-      const agoraFormatado = agora.toISOString().slice(0, 16);
+      agora.setHours(0, 0, 0, 0);
+      const agoraFormatado = agora.toISOString().slice(0, 10);
 
       if (dataInicioInput) {
         dataInicioInput.min = agoraFormatado;

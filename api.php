@@ -85,7 +85,7 @@ function obterToken()
     // Verifica se o header começa com 'Bearer '
     if (strpos($authHeader, 'Bearer ') === 0) {
         // Retorna o token removendo o prefixo 'Bearer '
-        return substr($authHeader, 7);
+        return trim(substr($authHeader, 7));
     }
     return null;
 }
@@ -101,7 +101,6 @@ function obterToken()
 function gerarTokenJWT($user_id, $email)
 {
     // A constante JWT_SECRET deve ser definida em 'config.php'
-    // Não é necessário 'global $JWT_SECRET;' se for uma constante definida com define()
     if (!defined('JWT_SECRET')) {
         erro('Chave secreta JWT não definida.', 500);
     }
@@ -126,7 +125,7 @@ function gerarTokenJWT($user_id, $email)
     $signatureEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
     // Retorna o token completo: header.payload.signature
-    return $headerEncoded . "." . $payloadEncoded . "." . $signatureEncoded;
+    return trim($headerEncoded . "." . $payloadEncoded . "." . $signatureEncoded);
 }
 
 /**
@@ -188,15 +187,12 @@ function verificarToken()
 
 // =================== [5] OBTENÇÃO DA AÇÃO SOLICITADA ===================
 
-// Determina qual ação deve ser executada com base nos parâmetros da requisição
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+// ✅ LER php://input UMA ÚNICA VEZ NO INÍCIO
+$rawInput = file_get_contents('php://input');
+$inputData = json_decode($rawInput, true) ?: [];
 
-// Se a ação não foi encontrada em GET ou POST, tenta buscar no corpo da requisição JSON
-if (empty($action)) {
-    // Lê o corpo da requisição (útil para requisições POST/PUT com Content-Type: application/json)
-    $input = json_decode(file_get_contents('php://input'), true);
-    $action = $input['action'] ?? '';
-}
+// Determina qual ação deve ser executada com base nos parâmetros da requisição
+$action = $_GET['action'] ?? $_POST['action'] ?? $inputData['action'] ?? '';
 
 // Se a ação ainda estiver vazia, retorna erro
 if (empty($action)) {
@@ -226,8 +222,7 @@ try {
 
         case 'login':
             // Processa login de usuário
-            $dados = json_decode(file_get_contents('php://input'), true);
-            // sanitizar() está em config.php
+            $dados = $inputData;
             $email = sanitizar($dados['email'] ?? '');
             $senha = $dados['senha'] ?? '';
 
@@ -268,7 +263,7 @@ try {
 
         case 'register':
             // Processa o registro de um novo usuário
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $nome = sanitizar($dados['nome'] ?? '');
             $email = sanitizar($dados['email'] ?? '');
             $username = sanitizar($dados['username'] ?? '');
@@ -279,7 +274,7 @@ try {
                 erro('Todos os campos são obrigatórios.');
             }
 
-            // Validação básica de email (validar_email() está em config.php)
+            // Validação básica de email
             if (!validar_email($email)) {
                 erro('Formato de email inválido.');
             }
@@ -301,7 +296,8 @@ try {
 
             sucesso(['id' => $novo_id, 'mensagem' => 'Registro realizado com sucesso. Aguarde a aprovação do administrador.']);
             break;
-        case 'obter_usuarios_admin': // Adicionado para compatibilidade com o frontend
+
+        case 'obter_usuarios_admin':
             // Lista TODOS os usuários (incluindo inativos) para administração
             $user_id = $tokenData['user_id'] ?? 0;
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
@@ -317,22 +313,20 @@ try {
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             sucesso($usuarios);
             break;
-            
+
         case 'obter_usuarios':
             // Lista todos os usuários ATIVOS
-            // Requer autenticação (já verificada)
-            // obter_usuarios() está em helpers.php
             $usuarios = obter_usuarios($pdo);
             sucesso($usuarios);
             break;
 
         case 'atualizar_usuario_admin':
             // Atualiza função e status de um usuário (apenas admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
             $funcao = sanitizar($dados['funcao'] ?? '');
-            $ativo = isset($dados['ativo']) ? (int)$dados['ativo'] : 1;
-            $squad = isset($dados['squad']) ? sanitizar($dados['squad']) : null;
+            $ativo = isset($dados['ativo']) ? (int) $dados['ativo'] : 1;
+            $squad = $dados['squad'] ?? null;
 
             if (!$usuario_id) {
                 erro('ID do usuário é obrigatório.');
@@ -359,7 +353,7 @@ try {
                 erro('Você não pode remover seus próprios privilégios de administrador.');
             }
 
-            // Validar squad (aceitar nulo ou lista pré-definida)
+            // Validar squad
             $squads_permitidos = [
                 'SQUAD MARKETING',
                 'SQUAD PRÉ VENDAS & VENDAS',
@@ -367,11 +361,14 @@ try {
                 'SQUAD TECNOLOGIA',
                 'SQUAD FINANCEIRO & ADM'
             ];
-            if ($squad !== null && $squad !== '' && !in_array($squad, $squads_permitidos)) {
-                erro('Squad inválido.');
+
+            if ($squad !== null && $squad !== '') {
+                if (!in_array($squad, $squads_permitidos)) {
+                    erro('Squad inválido.');
+                }
             }
 
-            // Atualizar usuário (inclui squad)
+            // Atualizar usuário
             $stmt = $pdo->prepare("UPDATE usuarios SET funcao = ?, ativo = ?, squad = ? WHERE id = ?");
             $stmt->execute([$funcao, $ativo, $squad, $usuario_id]);
 
@@ -380,7 +377,7 @@ try {
 
         case 'deletar_usuario_admin':
             // Deleta um usuário (apenas admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$usuario_id) {
@@ -410,18 +407,15 @@ try {
             break;
 
         case 'verify_token':
-            // Verifica se o token é válido (já feito pela função verificarToken() no roteamento)
+            // Verifica se o token é válido
             sucesso(['valido' => true, 'dados' => $tokenData, 'mensagem' => 'Token válido.']);
             break;
 
-
-
         case 'buscar_usuarios':
             // Busca usuários por termo (nome, email ou username)
-            // Requer autenticação (já verificada)
             $termo = $_GET['termo'] ?? '';
             if (strlen($termo) < 2) {
-                sucesso([]); // Retorna vazio se o termo for muito curto
+                sucesso([]);
                 break;
             }
 
@@ -431,10 +425,9 @@ try {
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             sucesso($usuarios);
             break;
-            
-        // editar_perfil - Atualiza dados do perfil do usuário
+
         case 'editar_perfil':
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
             $nome = sanitizar($dados['nome'] ?? '');
             $email = sanitizar($dados['email'] ?? '');
@@ -448,7 +441,6 @@ try {
             // Segurança: Garantir que o usuário só edite seu próprio perfil (ou seja admin)
             $requester_id = $tokenData['user_id'] ?? 0;
             if ($usuario_id != $requester_id) {
-                // Se não for o próprio usuário, verifica se é admin
                 $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
                 $stmt->execute([$requester_id]);
                 $req = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -461,178 +453,19 @@ try {
             $stmt = $pdo->prepare("UPDATE usuarios SET nome = ?, email = ?, username = ?, bio = ? WHERE id = ?");
             $stmt->execute([$nome, $email, $username, $bio, $usuario_id]);
 
-            // Retorna o usuário atualizado para atualizar o localStorage no frontend
+            // Retorna o usuário atualizado
             $stmt = $pdo->prepare("SELECT id, nome, email, username, funcao, ativo, bio, data_criacao FROM usuarios WHERE id = ?");
             $stmt->execute([$usuario_id]);
             $usuario_atualizado = $stmt->fetch(PDO::FETCH_ASSOC);
 
             sucesso(['usuario' => $usuario_atualizado, 'mensagem' => 'Perfil atualizado com sucesso!']);
             break;
-        case 'editar_tarefa':
-            // Alias para compatibilidade com o frontend antigo
-            // Converte para a action já implementada 'atualizar_tarefa'
-            // Lê o corpo uma vez e repassa para o mesmo fluxo se preferir,
-            // Aqui fazemos um redirect interno simples: atribuir $action e re-executar o switch.
-            // Simples e seguro: recriar $action e include do mesmo handler.
-            // Se o código de 'atualizar_tarefa' for longo, a opção mais simples é duplicar a lógica
-            // ou chamar uma função comum. Exemplo de delegação simples abaixo:
 
-            // Lê os dados e injeta em uma variável global para que o case 'atualizar_tarefa' os use
-            $dados_temp = json_decode(file_get_contents('php://input'), true);
-            // Reassign $_POST-like payload for downstream handler (se o handler espera json do php://input,
-            // é mais simples chamar diretamente a função que implementa o atualizar_tarefa).
-            // Aqui iremos replicar a lógica mínima: chamar manualmente o mesmo bloco.
-
-            // --- replicar/usar a lógica de 'atualizar_tarefa' abaixo (exemplo simples) ---
-            $tarefa_id = filter_var($dados_temp['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
-            $titulo = sanitizar($dados_temp['titulo'] ?? '');
-            $descricao = sanitizar($dados_temp['descricao'] ?? '');
-            $data_inicio = sanitizar($dados_temp['data_inicio'] ?? '');
-            $data_fim = sanitizar($dados_temp['data_fim'] ?? '');
-            $prioridade = sanitizar($dados_temp['prioridade'] ?? '');
-            $progresso_manual = isset($dados_temp['progresso_manual']) ? filter_var($dados_temp['progresso_manual'], FILTER_VALIDATE_INT) : null;
-            $status = sanitizar($dados_temp['status'] ?? '');
-            $usuarios = $dados_temp['usuarios'] ?? null;
-
-            if (!$tarefa_id) {
-                erro('ID da tarefa é obrigatório.');
-            }
-
-            // Monta a query dinamicamente (mesma lógica do atualizar_tarefa)
-            $set_clauses = [];
-            $params = [];
-
-            if (!empty($titulo)) {
-                $set_clauses[] = 'titulo = ?';
-                $params[] = $titulo;
-            }
-            if (!empty($descricao)) {
-                $set_clauses[] = 'descricao = ?';
-                $params[] = $descricao;
-            }
-            if (!empty($data_inicio)) {
-                $set_clauses[] = 'data_inicio = ?';
-                $params[] = $data_inicio;
-            }
-            if (!empty($data_fim)) {
-                $set_clauses[] = 'data_fim = ?';
-                $params[] = $data_fim;
-            }
-            if (!empty($prioridade)) {
-                $set_clauses[] = 'prioridade = ?';
-                $params[] = $prioridade;
-            }
-            if ($progresso_manual !== null) {
-                $set_clauses[] = 'progresso_manual = ?';
-                $params[] = $progresso_manual;
-            }
-            if (!empty($status)) {
-                $set_clauses[] = 'status = ?';
-                $params[] = $status;
-            }
-
-            if (empty($set_clauses)) {
-                erro('Nenhum dado para atualizar.');
-            }
-
-            $set_clauses[] = 'data_atualizacao = NOW()';
-            $sql = "UPDATE tarefas SET " . implode(', ', $set_clauses) . " WHERE id = ?";
-            $params[] = $tarefa_id;
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-
-            // Atualiza usuários (se fornecidos)
-            if ($usuarios !== null) {
-                $stmt_delete = $pdo->prepare("DELETE FROM tarefa_usuarios WHERE tarefa_id = ?");
-                $stmt_delete->execute([$tarefa_id]);
-                if (!empty($usuarios) && is_array($usuarios)) {
-                    $stmt_usuario = $pdo->prepare("INSERT INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
-                    foreach ($usuarios as $usuario_id) {
-                        $stmt_usuario->execute([$tarefa_id, $usuario_id]);
-                    }
-                }
-            }
-
-            // Ajustes de status quando progresso manual é informado
-            if ($progresso_manual !== null) {
-                if ($progresso_manual == 100) {
-                    $update_status = $pdo->prepare("UPDATE tarefas SET concluida = 1, status = 'concluida', data_conclusao_real = NOW() WHERE id = ?");
-                    $update_status->execute([$tarefa_id]);
-                } else {
-                    $update_status = $pdo->prepare("UPDATE tarefas SET concluida = 0, status = 'iniciada', data_conclusao_real = NULL WHERE id = ? AND status = 'concluida'");
-                    $update_status->execute([$tarefa_id]);
-                }
-            }
-
-            sucesso(['mensagem' => 'Tarefa atualizada com sucesso']);
-            break;
-        // --- inserir no switch($action) em api.php ---
-        case 'adicionar_usuario_tarefa':
-            $dados = json_decode(file_get_contents('php://input'), true);
-            $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
-            $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
-            $requester_id = $tokenData['user_id'] ?? 0;
-
-            if (!$tarefa_id || !$usuario_id) {
-                erro('ID da tarefa e do usuário são obrigatórios.', 400);
-            }
-
-            // Verificar permissão: somente admin ou usuário com permissão pode adicionar
-            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
-            $stmt->execute([$requester_id]);
-            $req = $stmt->fetch(PDO::FETCH_ASSOC);
-            $eh_admin = ($req && $req['funcao'] === 'admin');
-
-            if (!$eh_admin) {
-                erro('Acesso negado. Apenas administradores podem adicionar usuários à tarefa.', 403);
-            }
-
-            // Evitar duplicatas
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
-            $stmt->execute([$tarefa_id, $usuario_id]);
-            if ($stmt->fetchColumn() > 0) {
-                sucesso(['mensagem' => 'Usuário já está atribuído a essa tarefa.']);
-            }
-
-            // Inserir
-            $stmt = $pdo->prepare("INSERT INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
-            $stmt->execute([$tarefa_id, $usuario_id]);
-
-            sucesso(['mensagem' => 'Usuário adicionado à tarefa com sucesso']);
-            break;
-
-        case 'remover_usuario_tarefa':
-            $dados = json_decode(file_get_contents('php://input'), true);
-            $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
-            $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
-            $requester_id = $tokenData['user_id'] ?? 0;
-
-            if (!$tarefa_id || !$usuario_id) {
-                erro('ID da tarefa e do usuário são obrigatórios.', 400);
-            }
-
-            // Permissão: somente admin pode remover (ajuste se quiser permitir autores)
-            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
-            $stmt->execute([$requester_id]);
-            $req = $stmt->fetch(PDO::FETCH_ASSOC);
-            $eh_admin = ($req && $req['funcao'] === 'admin');
-
-            if (!$eh_admin) {
-                erro('Acesso negado. Apenas administradores podem remover usuários da tarefa.', 403);
-            }
-
-            // Deletar associação
-            $stmt = $pdo->prepare("DELETE FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
-            $stmt->execute([$tarefa_id, $usuario_id]);
-
-            sucesso(['mensagem' => 'Usuário removido da tarefa com sucesso']);
-            break;
         // =================================================================
         // [6.2] GERENCIAMENTO DE PROJETOS
         // =================================================================
 
         case 'obter_projetos':
-            // Busca projetos baseado no tipo de usuário (admin vê todos ativos, usuário vê projetos com tarefas atribuídas)
             $user_id = $tokenData['user_id'] ?? 0;
 
             // Verifica se usuário é admin
@@ -644,16 +477,14 @@ try {
                 erro('Usuário não encontrado', 404);
             }
 
-            $eh_admin = ($usuario['funcao'] === 'admin');
+            $eh_admin_ou_editor = ($usuario['funcao'] === 'admin' || $usuario['funcao'] === 'editor');
             $sql = "SELECT id, nome, descricao, status, data_inicio, data_fim, data_criacao, data_conclusao FROM projetos WHERE status != 'excluido' ";
             $params = [];
 
-            if (!$eh_admin) {
-                // Usuário comum: filtra projetos que possuem tarefas atribuídas a ele
+            if (!$eh_admin_ou_editor) {
                 $sql .= " AND id IN (SELECT DISTINCT t.projeto_id FROM tarefas t INNER JOIN tarefa_usuarios tu ON t.id = tu.tarefa_id WHERE tu.usuario_id = ? AND t.status != 'excluida') ";
                 $params[] = $user_id;
             } else {
-                // Admin: vê todos os projetos ativos
                 $sql .= " AND status = 'ativo' ";
             }
 
@@ -665,71 +496,66 @@ try {
             sucesso($projetos);
             break;
 
-case 'obter_detalhes_projeto_arquivado':
-    $projeto_id = filter_var($_GET['projeto_id'] ?? null, FILTER_VALIDATE_INT);
-    $user_id = $tokenData['user_id'] ?? 0;
+        case 'obter_detalhes_projeto_arquivado':
+            $projeto_id = filter_var($_GET['projeto_id'] ?? null, FILTER_VALIDATE_INT);
+            $user_id = $tokenData['user_id'] ?? 0;
 
-    if (!$projeto_id) {
-        erro('ID do projeto é obrigatório.', 400);
-    }
+            if (!$projeto_id) {
+                erro('ID do projeto é obrigatório.', 400);
+            }
 
-    // 1. Verificar se é admin
-    $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Verificar se é admin
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$usuario || $usuario['funcao'] !== 'admin') {
-        erro('Acesso negado. Apenas administradores podem acessar detalhes de projetos arquivados.', 403);
-    }
+            if (!$usuario || $usuario['funcao'] !== 'admin') {
+                erro('Acesso negado. Apenas administradores podem acessar detalhes de projetos arquivados.', 403);
+            }
 
-    // 2. Obter detalhes do projeto (apenas se estiver concluído ou excluído)
-    $stmt = $pdo->prepare("SELECT id, nome, descricao, status, data_conclusao FROM projetos WHERE id = ? AND (status = 'concluido' OR status = 'excluido')");
-    $stmt->execute([$projeto_id]);
-    $projeto = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Obter detalhes do projeto
+            $stmt = $pdo->prepare("SELECT id, nome, descricao, status, data_conclusao FROM projetos WHERE id = ? AND (status = 'concluido' OR status = 'excluido')");
+            $stmt->execute([$projeto_id]);
+            $projeto = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$projeto) {
-        erro('Projeto não encontrado ou não está arquivado.', 404);
-    }
+            if (!$projeto) {
+                erro('Projeto não encontrado ou não está arquivado.', 404);
+            }
 
-    // 3. Obter tarefas associadas ao projeto
-    $stmt_tarefas = $pdo->prepare("SELECT id, titulo as nome, status FROM tarefas WHERE projeto_id = ?");
-    $stmt_tarefas->execute([$projeto_id]);
-    $tarefas = $stmt_tarefas->fetchAll(PDO::FETCH_ASSOC);
+            // Obter tarefas
+            $stmt_tarefas = $pdo->prepare("SELECT id, titulo as nome, status FROM tarefas WHERE projeto_id = ?");
+            $stmt_tarefas->execute([$projeto_id]);
+            $tarefas = $stmt_tarefas->fetchAll(PDO::FETCH_ASSOC);
 
-    // 4. Para cada tarefa, obter suas etapas
-    foreach ($tarefas as &$tarefa) {
-        $stmt_etapas = $pdo->prepare("SELECT id, descricao as nome, concluida FROM tarefa_etapas WHERE tarefa_id = ? ORDER BY id ASC");
-        $stmt_etapas->execute([$tarefa['id']]);
-        $tarefa['etapas'] = $stmt_etapas->fetchAll(PDO::FETCH_ASSOC);
-    }
-    unset($tarefa);
+            // Obter etapas de cada tarefa
+            foreach ($tarefas as &$tarefa) {
+                $stmt_etapas = $pdo->prepare("SELECT id, descricao as nome, concluida FROM tarefa_etapas WHERE tarefa_id = ? ORDER BY id ASC");
+                $stmt_etapas->execute([$tarefa['id']]);
+                $tarefa['etapas'] = $stmt_etapas->fetchAll(PDO::FETCH_ASSOC);
+            }
+            unset($tarefa);
 
-    sucesso(['projeto' => $projeto, 'tarefas' => $tarefas]);
-    break;
+            sucesso(['projeto' => $projeto, 'tarefas' => $tarefas]);
+            break;
 
         case 'obter_projeto':
-            // Obtém detalhes de um projeto específico
             $projeto_id = filter_var($_GET['projeto_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$projeto_id) {
                 erro('ID do projeto é obrigatório');
             }
 
-            // obter_projeto() está em helpers.php
             $projeto = obter_projeto($pdo, $projeto_id);
 
             if (!$projeto || $projeto['status'] === 'excluido') {
                 erro('Projeto não encontrado ou excluído', 404);
             }
 
-            // TODO: Adicionar verificação de permissão de acesso ao projeto
-
             sucesso($projeto);
             break;
 
         case 'criar_projeto':
-            // Cria um novo projeto (apenas para admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $nome = sanitizar($dados['nome'] ?? '');
             $descricao = sanitizar($dados['descricao'] ?? '');
             $data_inicio = sanitizar($dados['data_inicio'] ?? '');
@@ -749,14 +575,15 @@ case 'obter_detalhes_projeto_arquivado':
                 erro('Data de término não pode ser anterior à data de início.');
             }
 
-            // Verificar se é admin
+            // Verificar se é admin OU editor
             $user_id = $tokenData['user_id'] ?? 0;
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$usuario || $usuario['funcao'] !== 'admin') {
-                erro('Acesso negado. Apenas administradores podem criar projetos.', 403);
+            $funcoes_permitidas = ['admin', 'editor'];
+            if (!$usuario || !in_array($usuario['funcao'], $funcoes_permitidas)) {
+                erro('Acesso negado. Apenas administradores e editores podem criar projetos.', 403);
             }
 
             $stmt = $pdo->prepare("INSERT INTO projetos (nome, descricao, data_inicio, data_fim, status) VALUES (?, ?, ?, ?, 'ativo')");
@@ -768,7 +595,7 @@ case 'obter_detalhes_projeto_arquivado':
 
         case 'criar_projeto_rapido':
             // Lê payload JSON
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $nome = sanitizar($dados['nome'] ?? '');
             $data_inicio = sanitizar($dados['data_inicio'] ?? '');
             $data_fim = sanitizar($dados['data_fim'] ?? '');
@@ -779,12 +606,15 @@ case 'obter_detalhes_projeto_arquivado':
                 erro('Usuário não autenticado', 401);
             }
 
-            // Verificar se é admin (consistente com criar_projeto)
+            // Verificar se é admin OU editor
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$usuario || $usuario['funcao'] !== 'admin') {
-                erro('Acesso negado. Apenas administradores podem criar projetos.', 403);
+
+            // Permitir admin e editor
+            $funcoes_permitidas = ['admin', 'editor'];
+            if (!$usuario || !in_array($usuario['funcao'], $funcoes_permitidas)) {
+                erro('Acesso negado. Apenas administradores e editores podem criar projetos.', 403);
             }
 
             if (empty($nome)) {
@@ -798,7 +628,7 @@ case 'obter_detalhes_projeto_arquivado':
 
             if ($existente) {
                 // Retornar o id existente sem recriar
-                sucesso(['existente' => true, 'id' => (int)$existente['id'], 'mensagem' => 'Projeto já existe']);
+                sucesso(['existente' => true, 'id' => (int) $existente['id'], 'mensagem' => 'Projeto já existe']);
             }
 
             // Validar/normalizar datas se fornecidas (opcional)
@@ -821,12 +651,12 @@ case 'obter_detalhes_projeto_arquivado':
             $stmt->execute([$nome, $descricao, $data_inicio ?: null, $data_fim ?: null]);
             $novo_id = $pdo->lastInsertId();
 
-            sucesso(['existente' => false, 'id' => (int)$novo_id, 'mensagem' => 'Projeto criado com sucesso']);
+            sucesso(['existente' => false, 'id' => (int) $novo_id, 'mensagem' => 'Projeto criado com sucesso']);
             break;
 
         case 'atualizar_projeto':
-            // Atualiza um projeto existente (apenas para admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            // Atualiza um projeto existente (apenas para admin ou editor)
+            $dados = $inputData;
             $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
             $nome = sanitizar($dados['nome'] ?? '');
             $descricao = sanitizar($dados['descricao'] ?? '');
@@ -850,14 +680,16 @@ case 'obter_detalhes_projeto_arquivado':
                 }
             }
 
-            // Verificar se é admin
+            // Verificar se é admin OU editor
             $user_id = $tokenData['user_id'] ?? 0;
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$usuario || $usuario['funcao'] !== 'admin') {
-                erro('Acesso negado. Apenas administradores podem atualizar projetos.', 403);
+            // Permitir admin e editor
+            $funcoes_permitidas = ['admin', 'editor'];
+            if (!$usuario || !in_array($usuario['funcao'], $funcoes_permitidas)) {
+                erro('Acesso negado. Apenas administradores e editores podem atualizar projetos.', 403);
             }
 
             $stmt = $pdo->prepare("UPDATE projetos SET nome = ?, descricao = ?, data_inicio = ?, data_fim = ?, status = ? WHERE id = ?");
@@ -867,7 +699,7 @@ case 'obter_detalhes_projeto_arquivado':
             break;
 
         case 'deletar_projeto':
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$projeto_id) {
@@ -897,7 +729,7 @@ case 'obter_detalhes_projeto_arquivado':
 
         case 'concluir_projeto':
             // Conclui um projeto (apenas para admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$projeto_id) {
@@ -927,7 +759,7 @@ case 'obter_detalhes_projeto_arquivado':
 
         case 'reabrir_projeto':
             // Reabre um projeto (apenas para admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$projeto_id) {
@@ -951,112 +783,112 @@ case 'obter_detalhes_projeto_arquivado':
             sucesso(['mensagem' => 'Projeto reaberto com sucesso']);
             break;
 
-            
-case 'excluir_projeto_definitivamente':
-    // Requer autenticação
-    $dados = json_decode(file_get_contents('php://input'), true);
-    $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
-    $user_id = $tokenData['user_id'] ?? 0;
 
-    if (!$projeto_id) {
-        erro('ID do projeto é obrigatório.', 400);
-    }
+        case 'excluir_projeto_definitivamente':
+            // Requer autenticação
+            $dados = $inputData;
+            $projeto_id = filter_var($dados['projeto_id'] ?? null, FILTER_VALIDATE_INT);
+            $user_id = $tokenData['user_id'] ?? 0;
 
-    // 1. Verificar se o usuário é admin
-    $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$projeto_id) {
+                erro('ID do projeto é obrigatório.', 400);
+            }
 
-    if (!$usuario || $usuario['funcao'] !== 'admin') {
-        erro('Acesso negado. Apenas administradores podem excluir projetos definitivamente.', 403);
-    }
+            // 1. Verificar se o usuário é admin
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // 2. Verificar se o projeto existe e está em um estado arquivável (concluído ou excluído)
-    $stmt = $pdo->prepare("SELECT id, status FROM projetos WHERE id = ? AND (status = 'concluido' OR status = 'excluido')");
-    $stmt->execute([$projeto_id]);
-    $projeto = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$usuario || $usuario['funcao'] !== 'admin') {
+                erro('Acesso negado. Apenas administradores podem excluir projetos definitivamente.', 403);
+            }
 
-    if (!$projeto) {
-        erro('Projeto não encontrado ou não está em um estado que permite exclusão definitiva.', 404);
-    }
+            // 2. Verificar se o projeto existe e está em um estado arquivável (concluído ou excluído)
+            $stmt = $pdo->prepare("SELECT id, status FROM projetos WHERE id = ? AND (status = 'concluido' OR status = 'excluido')");
+            $stmt->execute([$projeto_id]);
+            $projeto = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Iniciar transação para garantir atomicidade
-    $pdo->beginTransaction();
-    try {
-        // 3. Excluir etapas das tarefas deste projeto
-        $stmt_etapas = $pdo->prepare("
+            if (!$projeto) {
+                erro('Projeto não encontrado ou não está em um estado que permite exclusão definitiva.', 404);
+            }
+
+            // Iniciar transação para garantir atomicidade
+            $pdo->beginTransaction();
+            try {
+                // 3. Excluir etapas das tarefas deste projeto
+                $stmt_etapas = $pdo->prepare("
             DELETE te FROM tarefa_etapas te 
             INNER JOIN tarefas t ON te.tarefa_id = t.id 
             WHERE t.projeto_id = ?
         ");
-        $stmt_etapas->execute([$projeto_id]);
+                $stmt_etapas->execute([$projeto_id]);
 
-        // 4. Excluir usuários das tarefas (tarefa_usuarios)
-        $stmt_tarefa_usuarios = $pdo->prepare("
+                // 4. Excluir usuários das tarefas (tarefa_usuarios)
+                $stmt_tarefa_usuarios = $pdo->prepare("
             DELETE tu FROM tarefa_usuarios tu 
             INNER JOIN tarefas t ON tu.tarefa_id = t.id 
             WHERE t.projeto_id = ?
         ");
-        $stmt_tarefa_usuarios->execute([$projeto_id]);
+                $stmt_tarefa_usuarios->execute([$projeto_id]);
 
-        // 5. Excluir arquivos das tarefas
-        $stmt_arquivos = $pdo->prepare("
+                // 5. Excluir arquivos das tarefas
+                $stmt_arquivos = $pdo->prepare("
             DELETE ta FROM tarefas_arquivos ta 
             INNER JOIN tarefas t ON ta.tarefa_id = t.id 
             WHERE t.projeto_id = ?
         ");
-        $stmt_arquivos->execute([$projeto_id]);
+                $stmt_arquivos->execute([$projeto_id]);
 
-        // 6. Excluir comentários das tarefas
-        $stmt_comentarios = $pdo->prepare("
+                // 6. Excluir comentários das tarefas
+                $stmt_comentarios = $pdo->prepare("
             DELETE tc FROM tarefas_comentarios tc 
             INNER JOIN tarefas t ON tc.tarefa_id = t.id 
             WHERE t.projeto_id = ?
         ");
-        $stmt_comentarios->execute([$projeto_id]);
+                $stmt_comentarios->execute([$projeto_id]);
 
-        // 7. Excluir as tarefas do projeto
-        $stmt_tarefas = $pdo->prepare("DELETE FROM tarefas WHERE projeto_id = ?");
-        $stmt_tarefas->execute([$projeto_id]);
+                // 7. Excluir as tarefas do projeto
+                $stmt_tarefas = $pdo->prepare("DELETE FROM tarefas WHERE projeto_id = ?");
+                $stmt_tarefas->execute([$projeto_id]);
 
-        // 8. Excluir o projeto
-        $stmt_projeto = $pdo->prepare("DELETE FROM projetos WHERE id = ?");
-        $stmt_projeto->execute([$projeto_id]);
+                // 8. Excluir o projeto
+                $stmt_projeto = $pdo->prepare("DELETE FROM projetos WHERE id = ?");
+                $stmt_projeto->execute([$projeto_id]);
 
-        $pdo->commit();
-        sucesso(['mensagem' => 'Projeto excluído definitivamente com sucesso.']);
+                $pdo->commit();
+                sucesso(['mensagem' => 'Projeto excluído definitivamente com sucesso.']);
 
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        erro('Erro ao excluir projeto definitivamente: ' . $e->getMessage(), 500);
-    }
-    break;
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                erro('Erro ao excluir projeto definitivamente: ' . $e->getMessage(), 500);
+            }
+            break;
 
         case 'obter_projetos_finalizados':
-    // Lista projetos com status "concluido" ou "excluido"
-    $user_id = $tokenData['user_id'] ?? 0;
-    
-    // Verificar se é admin
-    $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$usuario || $usuario['funcao'] !== 'admin') {
-        erro('Acesso negado. Apenas administradores podem acessar o arquivo.', 403);
-    }
-    
-    // Buscar projetos finalizados e excluídos
-    $sql = "SELECT id, nome, descricao, status, data_inicio, data_fim, data_criacao, data_conclusao 
+            // Lista projetos com status "concluido" ou "excluido"
+            $user_id = $tokenData['user_id'] ?? 0;
+
+            // Verificar se é admin
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$usuario || $usuario['funcao'] !== 'admin') {
+                erro('Acesso negado. Apenas administradores podem acessar o arquivo.', 403);
+            }
+
+            // Buscar projetos finalizados e excluídos
+            $sql = "SELECT id, nome, descricao, status, data_inicio, data_fim, data_criacao, data_conclusao 
             FROM projetos 
             WHERE status IN ('concluido', 'excluido') 
             ORDER BY data_conclusao DESC";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $projetos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    sucesso($projetos);
-    break;
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            $projetos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            sucesso($projetos);
+            break;
 
         // =================================================================
         // [6.3] GERENCIAMENTO DE TAREFAS
@@ -1076,7 +908,7 @@ case 'excluir_projeto_definitivamente':
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-            $eh_admin = ($usuario['funcao'] === 'admin');
+            $eh_admin_ou_editor = ($usuario['funcao'] === 'admin' || $usuario['funcao'] === 'editor');
 
             // Verificar se o projeto existe e está ativo
             $stmt_projeto = $pdo->prepare("SELECT id, nome FROM projetos WHERE id = ? AND status = 'ativo'");
@@ -1087,7 +919,7 @@ case 'excluir_projeto_definitivamente':
                 erro('Projeto não encontrado ou inativo', 404);
             }
 
-            if (!$eh_admin) {
+            if (!$eh_admin_ou_editor) {
                 // Usuário comum: verifica se tem alguma tarefa atribuída neste projeto
                 $stmt_acesso = $pdo->prepare("
                     SELECT COUNT(*) as total 
@@ -1219,9 +1051,13 @@ case 'excluir_projeto_definitivamente':
             sucesso($tarefa);
             break;
 
+        // =================================================================
+        // [6.3] GERENCIAMENTO DE TAREFAS
+        // =================================================================
+
         case 'criar_tarefa':
-            // Cria uma nova tarefa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            // Cria uma nova tarefa (apenas para admin ou editor)
+            $dados = $inputData;
             $projeto_id = filter_var($dados["projeto_id"] ?? null, FILTER_VALIDATE_INT);
             $titulo = sanitizar($dados["titulo"] ?? "");
             $descricao = sanitizar($dados["descricao"] ?? "");
@@ -1230,6 +1066,19 @@ case 'excluir_projeto_definitivamente':
             $prioridade = sanitizar($dados["prioridade"] ?? "importante_nao_urgente");
             $progresso_manual = filter_var($dados['progresso_manual'] ?? 0, FILTER_VALIDATE_INT);
             $usuarios = $dados["usuarios"] ?? [];
+
+            // Verificar se é admin OU editor
+            $user_id = $tokenData['user_id'] ?? 0;
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // ✅ CORRIGIDO: Apenas admin e editor (sem 'usuario')
+            $funcoes_permitidas = ['admin', 'editor'];  // ✅ CORRETO!
+
+            if (!$usuario || !in_array($usuario['funcao'], $funcoes_permitidas)) {
+                erro('Acesso negado. Apenas administradores e editores podem criar tarefas.', 403);
+            }
 
             if (!$projeto_id) {
                 erro("ID do projeto inválido.");
@@ -1243,83 +1092,86 @@ case 'excluir_projeto_definitivamente':
                 erro('Datas de início e término são obrigatórias.');
             }
 
-            // Normalizar e validar ordem das datas
-            $ts_inicio = strtotime(str_replace('T', ' ', $data_inicio));
-            $ts_fim = strtotime(str_replace('T', ' ', $data_fim));
-            if ($ts_inicio === false || $ts_fim === false) {
-                erro('Formato de data inválido.');
-            }
-            if ($ts_fim < $ts_inicio) {
-                erro('Data de término não pode ser anterior à data de início.');
-            }
+            // Inserir tarefa
+            $stmt = $pdo->prepare("INSERT INTO tarefas (projeto_id, titulo, descricao, prioridade, data_inicio, data_fim, progresso_manual, status, squad, data_criacao) VALUES (?, ?, ?, ?, ?, ?, ?, 'pendente', ?, NOW())");
 
-            // Validação: não permitir datas anteriores ao dia atual (dataEhNoPassado() está em helpers.php)
-            if (dataEhNoPassado($data_inicio) || dataEhNoPassado($data_fim)) {
-                // A validação de dataEhNoPassado() deve ser ajustada para permitir datas passadas se a tarefa for retroativa,
-                // mas para novas tarefas, a restrição é razoável.
-                // erro('Datas não podem ser anteriores a hoje.');
-            }
+            // Definir squad: se não enviado, usa o do usuário (exceto se for admin sem squad definindo para outro)
+            // Se o usuário enviou squad, usamos. Se não, usamos o do usuário criador.
+            $squad_final = $dados['squad'] ?? $usuario['squad'] ?? null;
 
-            // Validação de prioridade
-            $prioridades_validas = ['urgente_importante', 'importante_nao_urgente', 'urgente_nao_importante', 'nao_urgente_nao_importante'];
-            if (!in_array($prioridade, $prioridades_validas)) {
-                $prioridade = 'importante_nao_urgente';
-            }
+            $stmt->execute([
+                $projeto_id,
+                $titulo,
+                $descricao,
+                $prioridade,
+                $data_inicio,
+                $data_fim,
+                $progresso_manual,
+                $squad_final
+            ]);
+            $nova_tarefa_id = $pdo->lastInsertId();
 
-            // Aceita override de squad no payload (opcional) — valida lista permitida
-            $squad = isset($dados['squad']) ? sanitizar($dados['squad']) : null;
-            $squads_permitidos = [
-                'SQUAD MARKETING',
-                'SQUAD PRÉ VENDAS & VENDAS',
-                'SQUAD RETENÇÃO E MONETIZAÇÃO',
-                'SQUAD TECNOLOGIA',
-                'SQUAD FINANCEIRO & ADM'
-            ];
-            if ($squad !== null && $squad !== '' && !in_array($squad, $squads_permitidos)) {
-                erro('Squad inválido.');
-            }
+            // Atribuir o criador à tarefa (REGRA: usuários só editam o que criaram/estão vinculados)
+            $stmt_vinculo = $pdo->prepare("INSERT INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
+            $stmt_vinculo->execute([$nova_tarefa_id, $user_id]);
 
-            // Determina o squad da tarefa: usa o enviado quando presente, senão usa o squad do criador
-            if (!empty($squad)) {
-                $squad_tarefa = $squad;
-            } else {
-                $criador_id = $tokenData['user_id'] ?? null;
-                $squad_tarefa = null;
-                if ($criador_id) {
-                    $stmt_s = $pdo->prepare("SELECT squad FROM usuarios WHERE id = ?");
-                    $stmt_s->execute([$criador_id]);
-                    $res_s = $stmt_s->fetch(PDO::FETCH_ASSOC);
-                    $squad_tarefa = $res_s['squad'] ?? null;
-                }
-            }
-
-            // Insere a tarefa com status 'pendente' e squad definido
-            $stmt = $pdo->prepare("INSERT INTO tarefas (projeto_id, squad, titulo, descricao, data_inicio, data_fim, status, concluida, prioridade, progresso_manual) VALUES (?, ?, ?, ?, ?, ?, 'pendente', 0, ?, ?)");
-            $stmt->execute([$projeto_id, $squad_tarefa, $titulo, $descricao, $data_inicio, $data_fim, $prioridade, $progresso_manual]);
-            $tarefa_id = $pdo->lastInsertId();
-
-            // Adiciona usuários à tarefa
+            // Adicionar outros usuários se houver
             if (!empty($usuarios) && is_array($usuarios)) {
-                $stmt_usuario = $pdo->prepare("INSERT INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
-                foreach ($usuarios as $usuario_id) {
-                    $stmt_usuario->execute([$tarefa_id, $usuario_id]);
+                $stmt_add = $pdo->prepare("INSERT IGNORE INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
+                foreach ($usuarios as $uid) {
+                    if ($uid != $user_id) { // Evitar duplicar o criador
+                        $stmt_add->execute([$nova_tarefa_id, $uid]);
+                    }
                 }
             }
-            sucesso(['id' => $tarefa_id, 'mensagem' => 'Tarefa criada com sucesso']);
+
+            sucesso(['id' => $nova_tarefa_id, 'mensagem' => 'Tarefa criada com sucesso']);
             break;
 
+        case 'editar_tarefa':
         case 'atualizar_tarefa':
-            // Atualiza uma tarefa existente
-            $dados = json_decode(file_get_contents('php://input'), true);
+            // Atualiza uma tarefa existente (apenas para admin ou editor)
+            $dados = $inputData; // ✅ Usar $inputData
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             $titulo = sanitizar($dados['titulo'] ?? '');
             $descricao = sanitizar($dados['descricao'] ?? '');
             $data_inicio = sanitizar($dados['data_inicio'] ?? '');
             $data_fim = sanitizar($dados['data_fim'] ?? '');
             $prioridade = sanitizar($dados['prioridade'] ?? '');
-            $progresso_manual = filter_var($dados['progresso_manual'] ?? null, FILTER_VALIDATE_INT);
+            $progresso_manual = isset($dados['progresso_manual']) && $dados['progresso_manual'] !== '' ? filter_var($dados['progresso_manual'], FILTER_VALIDATE_INT) : null;
             $status = sanitizar($dados['status'] ?? '');
             $usuarios = $dados["usuarios"] ?? null;
+
+            // Verificar se é admin OU editor
+            $user_id = $tokenData['user_id'] ?? 0;
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Permitir admin e editor
+            $tem_permissao = false;
+            if ($usuario && ($usuario['funcao'] === 'admin' || $usuario['funcao'] === 'editor')) {
+                $tem_permissao = true;
+            } elseif ($usuario && $usuario['funcao'] === 'usuario') {
+                // Se for usuário comum, verifica se ele é o criador OU está atribuído à tarefa
+                // Como não temos coluna creator_id, verificamos se ele está na tabela tarefa_usuarios
+                // (assumindo que o criador é sempre adicionado à tarefa na criação)
+
+                // Primeiro precisamos garantir que temos o ID da tarefa para checar
+                if (!$tarefa_id) {
+                    erro('ID da tarefa é obrigatório.', 400);
+                }
+
+                $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
+                $stmt_check->execute([$tarefa_id, $user_id]);
+                if ($stmt_check->fetchColumn() > 0) {
+                    $tem_permissao = true;
+                }
+            }
+
+            if (!$tem_permissao) {
+                erro('Acesso negado. Você só pode editar tarefas que criou ou onde foi mencionado/atribuído.', 403);
+            }
 
             if (!$tarefa_id) {
                 erro('ID da tarefa é obrigatório.');
@@ -1413,7 +1265,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'pausar_tarefa':
             // Pausa uma tarefa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             if (!$tarefa_id) {
                 erro('ID da tarefa inválido.');
@@ -1425,7 +1277,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'iniciar_tarefa':
             // Inicia uma tarefa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             if (!$tarefa_id) {
                 erro('ID da tarefa inválido.');
@@ -1437,7 +1289,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'concluir_tarefa':
             // Marca uma tarefa como concluída
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             $data_conclusao = sanitizar($dados['data_conclusao'] ?? date('Y-m-d H:i:s'));
 
@@ -1453,7 +1305,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'reabrir_tarefa':
             // Reabre uma tarefa concluída
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             $novo_status = sanitizar($dados['novo_status'] ?? 'iniciada');
 
@@ -1469,7 +1321,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'deletar_tarefa':
             // Exclui uma tarefa (soft delete)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             if (!$tarefa_id) {
                 erro('ID da tarefa inválido.');
@@ -1498,7 +1350,7 @@ case 'excluir_projeto_definitivamente':
         case 'criar_etapa':          // ← Frontend expects this
         case 'adicionaretapa':       // ← Backend had this
             // Adiciona uma nova etapa (item de checklist) a uma tarefa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
 
             // Support both naming conventions (tarefa_id and tarefaid)
             $tarefa_id = filter_var($dados['tarefa_id'] ?? $dados['tarefaid'] ?? null, FILTER_VALIDATE_INT);
@@ -1524,7 +1376,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'concluir_etapa':
             // Marca uma etapa como concluída
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $etapa_id = filter_var($dados['etapa_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$etapa_id) {
@@ -1559,7 +1411,7 @@ case 'excluir_projeto_definitivamente':
 
         case 'reabrir_etapa':
             // Marca uma etapa como pendente (reabre)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $etapa_id = filter_var($dados['etapa_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$etapa_id) {
@@ -1593,11 +1445,11 @@ case 'excluir_projeto_definitivamente':
         case 'atualizar_etapa':      // ← Frontend might use this
         case 'atualizaretapa':       // ← Backend has this
             // Marca uma etapa como concluída ou pendente
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
 
             // Support both naming conventions (etapa_id and etapaid)
             $etapa_id = filter_var($dados['etapa_id'] ?? $dados['etapaid'] ?? null, FILTER_VALIDATE_INT);
-            $concluida = isset($dados['concluida']) ? (int)$dados['concluida'] : 0;
+            $concluida = isset($dados['concluida']) ? (int) $dados['concluida'] : 0;
 
             if (!$etapa_id) {
                 erro('ID da etapa é obrigatório.');
@@ -1637,7 +1489,7 @@ case 'excluir_projeto_definitivamente':
         case 'deletar_etapa':        // ← Frontend might use this
         case 'deletaretapa':         // ← Backend has this
             // Deleta uma etapa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
 
             // Support both naming conventions (etapa_id and etapaid)
             $etapa_id = filter_var($dados['etapa_id'] ?? $dados['etapaid'] ?? null, FILTER_VALIDATE_INT);
@@ -1793,16 +1645,27 @@ case 'excluir_projeto_definitivamente':
             }
 
             // Busca informações do arquivo
-            $stmt = $pdo->prepare("SELECT nome_original, caminho, tipo, tamanho FROM tarefas_arquivos WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT tarefa_id, nome_arquivo, nome_original, tipo, tamanho FROM tarefas_arquivos WHERE id = ?");
             $stmt->execute([$arquivo_id]);
             $arquivo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$arquivo || !file_exists($arquivo['caminho'])) {
-                erro('Arquivo não encontrado', 404);
+            if (!$arquivo) {
+                erro('Arquivo não encontrado no banco de dados', 404);
+            }
+
+            // Constrói o caminho completo do arquivo
+            // UPLOAD_DIR deve ser definido em config.php
+            $caminho_arquivo = UPLOAD_DIR . '/' . $arquivo['tarefa_id'] . '/' . $arquivo['nome_arquivo'];
+
+            if (!file_exists($caminho_arquivo)) {
+                erro('Arquivo físico não encontrado', 404);
             }
 
             // Envia o arquivo para download
-            ob_clean(); // Limpa o buffer de saída
+            // Limpa qualquer buffer de saída anterior para evitar corrupção do arquivo
+            if (ob_get_level())
+                ob_end_clean();
+
             header('Content-Description: File Transfer');
             header('Content-Type: ' . $arquivo['tipo']);
             header('Content-Disposition: attachment; filename="' . $arquivo['nome_original'] . '"');
@@ -1810,29 +1673,35 @@ case 'excluir_projeto_definitivamente':
             header('Cache-Control: must-revalidate');
             header('Pragma: public');
             header('Content-Length: ' . $arquivo['tamanho']);
-            readfile($arquivo['caminho']);
+            readfile($caminho_arquivo);
             exit;
             break;
 
         case 'deletar_arquivo':
             // Deleta um arquivo e seu registro no banco
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $arquivo_id = filter_var($dados['arquivo_id'] ?? null, FILTER_VALIDATE_INT);
 
             if (!$arquivo_id) {
                 erro('ID do arquivo é obrigatório.');
             }
 
-            // 1. Busca o caminho do arquivo
-            $stmt = $pdo->prepare("SELECT caminho FROM tarefas_arquivos WHERE id = ?");
+            // 1. Busca infos para montar o caminho do arquivo
+            $stmt = $pdo->prepare("SELECT tarefa_id, nome_arquivo FROM tarefas_arquivos WHERE id = ?");
             $stmt->execute([$arquivo_id]);
-            $caminho = $stmt->fetchColumn();
+            $arquivo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $caminho = null;
+            if ($arquivo) {
+                // UPLOAD_DIR deve estar definido em config.php
+                $caminho = UPLOAD_DIR . '/' . $arquivo['tarefa_id'] . '/' . $arquivo['nome_arquivo'];
+            }
 
             // 2. Deleta o registro no banco
             $stmt = $pdo->prepare("DELETE FROM tarefas_arquivos WHERE id = ?");
             $stmt->execute([$arquivo_id]);
 
-            // 3. Deleta o arquivo físico (se existir)
+            // 3. Deleta o arquivo físico (se existir e foi encontrado)
             if ($caminho && file_exists($caminho)) {
                 unlink($caminho);
             }
@@ -1840,13 +1709,100 @@ case 'excluir_projeto_definitivamente':
             sucesso(['mensagem' => 'Arquivo deletado com sucesso']);
             break;
 
-        // =================================================================
-        // [6.6] GERENCIAMENTO DE COMENTÁRIOS
-        // =================================================================
+        case 'adicionar_usuario_tarefa':
+            // Adiciona um usuário a uma tarefa
+            $dados = $inputData;
+            $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
+            $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
+
+            if (!$tarefa_id || !$usuario_id) {
+                erro('ID da tarefa e ID do usuário são obrigatórios.');
+            }
+
+            // Verificar permissão
+            $user_id = $tokenData['user_id'] ?? 0;
+
+            // Verificar função do usuário logado
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario_logado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $tem_permissao = false;
+
+            if ($usuario_logado['funcao'] === 'admin') {
+                $tem_permissao = true;
+            } elseif ($usuario_logado['funcao'] === 'editor') {
+                // Verificar se o editor está atribuído à tarefa
+                $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
+                $stmt_check->execute([$tarefa_id, $user_id]);
+                if ($stmt_check->fetchColumn() > 0) {
+                    $tem_permissao = true;
+                }
+            }
+
+            if (!$tem_permissao) {
+                erro('Acesso negado. Você não tem permissão para adicionar usuários a esta tarefa.', 403);
+            }
+
+            // Verifica se o usuário já está na tarefa
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
+            $stmt->execute([$tarefa_id, $usuario_id]);
+            if ($stmt->fetchColumn() > 0) {
+                erro('Usuário já está atribuído a esta tarefa.');
+            }
+
+            // Adiciona o usuário
+            $stmt = $pdo->prepare("INSERT INTO tarefa_usuarios (tarefa_id, usuario_id) VALUES (?, ?)");
+            $stmt->execute([$tarefa_id, $usuario_id]);
+
+            sucesso(['mensagem' => 'Usuário adicionado à tarefa com sucesso']);
+            break;
+
+        case 'remover_usuario_tarefa':
+            // Remove um usuário de uma tarefa
+            $dados = $inputData;
+            $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
+            $usuario_id = filter_var($dados['usuario_id'] ?? null, FILTER_VALIDATE_INT);
+
+            if (!$tarefa_id || !$usuario_id) {
+                erro('ID da tarefa e ID do usuário são obrigatórios.');
+            }
+
+            // Verificar permissão
+            $user_id = $tokenData['user_id'] ?? 0;
+
+            // Verificar função do usuário logado
+            $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $usuario_logado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $tem_permissao = false;
+
+            if ($usuario_logado['funcao'] === 'admin') {
+                $tem_permissao = true;
+            } elseif ($usuario_logado['funcao'] === 'editor') {
+                // Verificar se o editor está atribuído à tarefa
+                $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
+                $stmt_check->execute([$tarefa_id, $user_id]);
+                if ($stmt_check->fetchColumn() > 0) {
+                    $tem_permissao = true;
+                }
+            }
+
+            if (!$tem_permissao) {
+                erro('Acesso negado. Você não tem permissão para remover usuários desta tarefa.', 403);
+            }
+
+            // Remove o usuário
+            $stmt = $pdo->prepare("DELETE FROM tarefa_usuarios WHERE tarefa_id = ? AND usuario_id = ?");
+            $stmt->execute([$tarefa_id, $usuario_id]);
+
+            sucesso(['mensagem' => 'Usuário removido da tarefa com sucesso']);
+            break;
 
         case 'adicionar_comentario':
             // Adiciona um novo comentário a uma tarefa
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
             $usuario_id = $tokenData['user_id'] ?? 0; // Usa o ID do usuário autenticado
             $comentario = sanitizar($dados['comentario'] ?? '');
@@ -1884,9 +1840,13 @@ case 'excluir_projeto_definitivamente':
             sucesso($comentarios);
             break;
 
+        // =================================================================
+        // [6.6] GERENCIAMENTO DE COMENTÁRIOS
+        // =================================================================
+
         case 'deletar_comentario':
             // Deleta um comentário (apenas o autor ou admin)
-            $dados = json_decode(file_get_contents('php://input'), true);
+            $dados = $inputData;
             $comentario_id = filter_var($dados['comentario_id'] ?? null, FILTER_VALIDATE_INT);
             $user_id = $tokenData['user_id'] ?? 0;
 
@@ -1956,15 +1916,15 @@ case 'excluir_projeto_definitivamente':
 
             $resultado = [
                 'projetos' => [
-                    'total' => (int)$total_projetos,
-                    'ativos' => (int)$projetos_ativos,
-                    'concluidos' => (int)$projetos_concluidos,
+                    'total' => (int) $total_projetos,
+                    'ativos' => (int) $projetos_ativos,
+                    'concluidos' => (int) $projetos_concluidos,
                 ],
                 'tarefas' => [
-                    'total' => (int)$total_tarefas,
-                    'concluidas' => (int)$tarefas_concluidas,
-                    'atrasadas' => (int)$tarefas_atrasadas,
-                    'pausadas' => (int)$tarefas_pausadas,
+                    'total' => (int) $total_tarefas,
+                    'concluidas' => (int) $tarefas_concluidas,
+                    'atrasadas' => (int) $tarefas_atrasadas,
+                    'pausadas' => (int) $tarefas_pausadas,
                     'taxa_conclusao' => $total_tarefas > 0 ? round(($tarefas_concluidas / $total_tarefas) * 100, 2) : 0,
                 ],
             ];
