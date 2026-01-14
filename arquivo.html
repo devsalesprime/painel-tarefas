@@ -129,14 +129,14 @@
                             <i class="bi bi-list-task"></i>
                         </a>
                     </li>
-                    <li class="nav-item me-3">
+                    <li class="nav-item me-3 admin-only" style="display:none;">
                         <a class="nav-link admin-link" href="relatorio.html" data-bs-toggle="tooltip"
                             data-bs-placement="bottom" title="Relatório">
                             <i class="bi bi-bar-chart"></i>
                         </a>
                     </li>
                     <!-- Link de Administração (apenas ícone, visível apenas para admins) -->
-                    <li class="nav-item" id="adminLinkItem">
+                    <li class="nav-item admin-only" id="adminLinkItem" style="display:none;">
                         <a class="nav-link admin-link" href="admin.html" data-bs-toggle="tooltip"
                             data-bs-placement="bottom" title="Administração">
                             <i class="bi bi-gear"></i>
@@ -263,12 +263,14 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
 
                     <!-- Botão Restaurar -->
-                    <button type="button" class="btn btn-success" id="btnRestaurarProjeto">
+                    <button type="button" class="btn btn-success admin-only" id="btnRestaurarProjeto"
+                        style="display:none;">
                         <i class="fas fa-arrow-counterclockwise"></i> Restaurar Projeto
                     </button>
 
                     <!-- Botão Excluir Definitivamente -->
-                    <button type="button" class="btn btn-danger" id="btnExcluirDefinitivamente">
+                    <button type="button" class="btn btn-danger admin-only" id="btnExcluirDefinitivamente"
+                        style="display:none;">
                         <i class="fas fa-trash-alt"></i> Excluir Definitivamente
                     </button>
                 </div>
@@ -1076,22 +1078,22 @@
     <script src="js/core.js"></script>
     <script src="js/main.js"></script>
     <script src="js/utils.js"></script>
-    
+
     <!-- Data e Renderização -->
     <script src="js/data.js"></script>
     <script src="js/render.js"></script>
     <script src="js/ui.js"></script>
-    
+
     <!-- Modais -->
     <script src="js/modals.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/profile.js"></script>
-    
+
     <!-- Funcionalidades -->
     <script src="js/complementos.js"></script>
     <script src="js/taskManager.js"></script>
     <script src="js/actions.js"></script>
-    
+
     <!-- Inicialização -->
     <script src="js/init.js"></script>
 

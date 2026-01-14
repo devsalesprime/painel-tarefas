@@ -1,0 +1,26 @@
+name: Deploy via FTP
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Deploy to FTP
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: 162.241.2.214
+        username: fabio.soares@salesprime.com.br
+        password: a)b=KY]qE9}3
+        server-dir: /task.salesprime.com.br/  # ⬅️ AJUSTE ESTE CAMINHO
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.env

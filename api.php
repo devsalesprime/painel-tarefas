@@ -504,14 +504,16 @@ try {
                 erro('ID do projeto é obrigatório.', 400);
             }
 
-            // Verificar se é admin
+            // Verificar permissões
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$usuario || $usuario['funcao'] !== 'admin') {
-                erro('Acesso negado. Apenas administradores podem acessar detalhes de projetos arquivados.', 403);
+            if (!$usuario || !in_array($usuario['funcao'], ['admin', 'editor'])) {
+                erro('Acesso negado. Apenas administradores e editores podem acessar detalhes de projetos arquivados.', 403);
             }
+
+            $eh_admin = ($usuario['funcao'] === 'admin');
 
             // Obter detalhes do projeto
             $stmt = $pdo->prepare("SELECT id, nome, descricao, status, data_conclusao FROM projetos WHERE id = ? AND (status = 'concluido' OR status = 'excluido')");
@@ -522,9 +524,27 @@ try {
                 erro('Projeto não encontrado ou não está arquivado.', 404);
             }
 
+            // Se for editor, verificar se ele tem acesso a este projeto (pelo menos uma tarefa vinculada)
+            if (!$eh_admin) {
+                $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM tarefa_usuarios tu INNER JOIN tarefas t ON tu.tarefa_id = t.id WHERE t.projeto_id = ? AND tu.usuario_id = ?");
+                $stmt_check->execute([$projeto_id, $user_id]);
+                if ($stmt_check->fetchColumn() == 0) {
+                    erro('Acesso negado. Você não possui tarefas vinculadas a este projeto.', 403);
+                }
+            }
+
             // Obter tarefas
-            $stmt_tarefas = $pdo->prepare("SELECT id, titulo as nome, status FROM tarefas WHERE projeto_id = ?");
-            $stmt_tarefas->execute([$projeto_id]);
+            $sql_tarefas = "SELECT id, titulo as nome, status FROM tarefas WHERE projeto_id = ?";
+            $params_tarefas = [$projeto_id];
+
+            if (!$eh_admin) {
+                // Para editores, apenas tarefas onde eles estão vinculados
+                $sql_tarefas .= " AND id IN (SELECT tarefa_id FROM tarefa_usuarios WHERE usuario_id = ?)";
+                $params_tarefas[] = $user_id;
+            }
+
+            $stmt_tarefas = $pdo->prepare($sql_tarefas);
+            $stmt_tarefas->execute($params_tarefas);
             $tarefas = $stmt_tarefas->fetchAll(PDO::FETCH_ASSOC);
 
             // Obter etapas de cada tarefa
@@ -868,23 +888,33 @@ try {
             // Lista projetos com status "concluido" ou "excluido"
             $user_id = $tokenData['user_id'] ?? 0;
 
-            // Verificar se é admin
+            // Verificar permissões
             $stmt = $pdo->prepare("SELECT funcao FROM usuarios WHERE id = ?");
             $stmt->execute([$user_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$usuario || $usuario['funcao'] !== 'admin') {
-                erro('Acesso negado. Apenas administradores podem acessar o arquivo.', 403);
+            if (!$usuario || !in_array($usuario['funcao'], ['admin', 'editor'])) {
+                erro('Acesso negado. Apenas administradores e editores podem acessar o arquivo.', 403);
             }
+
+            $eh_admin = ($usuario['funcao'] === 'admin');
+            $params = [];
 
             // Buscar projetos finalizados e excluídos
             $sql = "SELECT id, nome, descricao, status, data_inicio, data_fim, data_criacao, data_conclusao 
             FROM projetos 
-            WHERE status IN ('concluido', 'excluido') 
-            ORDER BY data_conclusao DESC";
+            WHERE status IN ('concluido', 'excluido') ";
+
+            if (!$eh_admin) {
+                // Para editores, apenas projetos onde eles estão vinculados a alguma tarefa
+                $sql .= " AND id IN (SELECT DISTINCT t.projeto_id FROM tarefas t INNER JOIN tarefa_usuarios tu ON t.id = tu.tarefa_id WHERE tu.usuario_id = ?) ";
+                $params[] = $user_id;
+            }
+
+            $sql .= " ORDER BY data_conclusao DESC";
 
             $stmt = $pdo->prepare($sql);
-            $stmt->execute();
+            $stmt->execute($params);
             $projetos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             sucesso($projetos);
