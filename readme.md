@@ -62,6 +62,18 @@ O **Task Panel** é um sistema web completo para gerenciamento de projetos e tar
 ```
 task_panel/
 │
+├── 📁 include/                     # [NOVO] Módulos da API Backend
+│   ├── api_response.php            # Funções de resposta JSON
+│   ├── api_auth.php                # Autenticação JWT
+│   ├── api_usuarios.php            # Gestão de usuários
+│   ├── api_projetos.php            # Gestão de projetos
+│   ├── api_tarefas.php             # Gestão de tarefas
+│   ├── api_etapas.php              # Gestão de etapas
+│   ├── api_arquivos.php            # Gestão de arquivos
+│   ├── api_comentarios.php         # Gestão de comentários
+│   ├── api_links.php               # Gestão de links
+│   └── api_relatorios.php          # Relatórios administrativos
+│
 ├── 📁 js/                          # Módulos JavaScript
 │   ├── core.js                     # TaskManager e autenticação base
 │   ├── main.js                     # Constantes globais
@@ -70,14 +82,17 @@ task_panel/
 │   ├── render.js                   # Renderização de tarefas
 │   ├── ui.js                       # Funções de interface
 │   ├── modals.js                   # Controle de modais
-│   ├── auth.js                     # Autenticação frontend
+│   ├── auth_main.js                # [MOVIDO] Autenticação frontend (antigo auth.js)
 │   ├── profile.js                  # Gerenciamento de perfil
 │   ├── complementos.js             # Funcionalidades extras
 │   ├── taskManager.js              # CRUD de tarefas
 │   ├── actions.js                  # Comentários, arquivos, etapas
 │   ├── init.js                     # Inicialização do sistema
 │   ├── loader.js                   # Indicador de carregamento
-│   └── debug.js                    # Ferramentas de debug
+│   ├── debug.js                    # Ferramentas de debug
+│   ├── perfil.js                   # [MOVIDO] Script de perfil (standalone)
+│   ├── senha.js                    # [MOVIDO] Script de senha (standalone)
+│   └── relatorios.js               # [MOVIDO] Script de relatórios (standalone)
 │
 ├── 📁 uploads/                     # Arquivos enviados pelos usuários
 │
@@ -89,26 +104,19 @@ task_panel/
 ├── 📄 arquivo.html                 # Tarefas arquivadas
 ├── 📄 esqueceu-senha.html          # Recuperação de senha
 │
-├── 📄 api.php                      # API RESTful principal
-├── 📄 auth.php                     # Autenticação e registro (backend)
+├── 📄 api.php                      # API RESTful (Controlador Principal)
 ├── 📄 config.php                   # Configurações do sistema
 ├── 📄 helpers.php                  # Funções auxiliares PHP
-├── 📄 middleware.php               # Middleware de autenticação
 │
 ├── 📄 styles.css                   # Estilos principais
 ├── 📄 auth.css                     # Estilos de autenticação
-│
-├── 📄 auth.js                      # Script de autenticação (páginas de login)
-├── 📄 perfil.js                    # Script de perfil (standalone)
-├── 📄 senha.js                     # Script de senha (standalone)
-├── 📄 relatorios.js                # Script de relatórios (standalone)
 │
 ├── 📄 task_panel.sql               # Schema do banco de dados
 ├── 📄 .htaccess                    # Configurações Apache
 └── 📄 README.md                    # Este arquivo
 ```
 
-> **Nota:** As pastas `backup/`, `vendor/` e `api-old/` não são utilizadas no sistema em produção e podem ser removidas.
+> **Nota:** A refatoração moveu a lógica pesada do `api.php` para a pasta `include/`, tornando o sistema mais modular e fácil de manter. Os scripts JS soltos na raiz também foram organizados na pasta `js/`.
 
 ---
 

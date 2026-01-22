@@ -85,6 +85,9 @@ async function renderizarTarefas() {
         // Sempre filtrar tarefas excluídas (deletadas)
         const tarefasNaoExcluidas = tarefas.filter((t) => t.status !== "excluida");
         
+        // Acumula TODAS as tarefas não excluídas para estatísticas, independente da visualização
+        todasAsTarefas = todasAsTarefas.concat(tarefasNaoExcluidas);
+
         if (taskManager.mostrarArquivadas) {
           // Mostrar TODAS as tarefas (incluindo concluídas, mas não excluídas)
           tarefasParaExibir = tarefasNaoExcluidas;
@@ -95,15 +98,14 @@ async function renderizarTarefas() {
           console.log(`✅ Mostrando apenas tarefas NÃO CONCLUÍDAS: ${tarefasParaExibir.length}`);
         }
         
-        todasAsTarefas = todasAsTarefas.concat(tarefasParaExibir);
+        // todasAsTarefas = todasAsTarefas.concat(tarefasParaExibir); // REMOVIDO: Agora usamos todasAsTarefas para o total real
 
-        // Conta projetos com tarefas válidas
+        // Conta projetos com tarefas válidas (visualização)
         if (tarefasParaExibir.length > 0) projetosComTarefas++;
 
-        // Filtra tarefas conforme filtros ativos
+        // Filtra tarefas conforme filtros ativos (para renderização)
         const tarefasFiltradas = filtrarTarefas(tarefasParaExibir);
 
-        // Renderiza conforme o modo atual (lista ou kanban)
         // Renderiza conforme o modo atual (lista ou kanban)
         container.innerHTML +=
           viewMode === "kanban"
@@ -116,11 +118,12 @@ async function renderizarTarefas() {
     }
 
     // Se existem projetos, mas nenhum possui tarefas → mensagem "Nenhuma tarefa"
-    if (projetosComTarefas === 0 && todasAsTarefas.length === 0) {
+    // Verifica se a lista para renderização está vazia, não a lista total
+    if (projetosComTarefas === 0 && todasAsTarefas.length === 0) { 
       container.innerHTML = criarMensagemSemTarefas(ehAdmin);
     }
 
-    // Atualiza estatísticas gerais (se não estiver em página de relatórios)
+    // Atualiza estatísticas gerais usando a lista completa (todasAsTarefas agora contém tudo)
     if (!window.location.pathname.includes("relatorios.html")) {
       taskManager.atualizarEstatisticas(todasAsTarefas);
     }
@@ -251,8 +254,17 @@ function gerarCardKanban(tarefa, ehAdmin) {
       : progresso > 0
       ? "bg-primary"
       : "bg-secondary";
-  const atraso =
-    new Date(tarefa.data_fim) < new Date() && tarefa.concluida === 0;
+// Verifica se está atrasada (prazo menor que hoje, considerando apenas a data)
+  // Verifica se está atrasada (comparando apenas datas, ignorando horário)
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  const dataFim = new Date(tarefa.data_fim);
+  const dataFimSemHora = new Date(dataFim);
+  dataFimSemHora.setHours(0, 0, 0, 0);
+  
+  // Atrasado apenas se a data de fim for estritamente menor que hoje (ontem ou antes)
+  const atraso = dataFimSemHora < hoje && tarefa.concluida === 0;
 
   return `
         <div class="kanban-card prioridade-${prioridadeInfo.cor} ${
@@ -490,8 +502,17 @@ function gerarCardLista(tarefa, ehAdmin) {
       : progresso > 0
       ? "bg-primary"
       : "bg-secondary";
-  const atraso =
-    new Date(tarefa.data_fim) < new Date() && tarefa.concluida === 0;
+// Verifica se está atrasada (prazo menor que hoje, considerando apenas a data)
+  // Verifica se está atrasada (comparando apenas datas, ignorando horário)
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  const dataFim = new Date(tarefa.data_fim);
+  const dataFimSemHora = new Date(dataFim);
+  dataFimSemHora.setHours(0, 0, 0, 0);
+  
+  // Atrasado apenas se a data de fim for estritamente menor que hoje (ontem ou antes)
+  const atraso = dataFimSemHora < hoje && tarefa.concluida === 0;
 
   return `
         <div class="lista-tarefa prioridade-${prioridadeInfo.cor} ${
