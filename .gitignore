@@ -37,3 +37,6 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+#git workflow
+.github/workflows/deploy.yml
