@@ -1914,6 +1914,60 @@ try {
             break;
 
         // =================================================================
+        // [6.8] GERENCIAMENTO DE LINKS
+        // =================================================================
+
+        case 'adicionar_link':
+            // Adiciona um link a uma tarefa
+            $dados = $inputData;
+            $tarefa_id = filter_var($dados['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
+            $titulo = sanitizar($dados['titulo'] ?? '');
+            $url = sanitizar($dados['url'] ?? '');
+            $user_id = $tokenData['user_id'] ?? 0;
+
+            if (!$tarefa_id || empty($titulo) || empty($url)) {
+                erro('Tarefa ID, título e URL são obrigatórios.');
+            }
+
+            // Validar URL
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                erro('URL inválida.');
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO tarefas_links (tarefa_id, titulo, url, usuario_id) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$tarefa_id, $titulo, $url, $user_id]);
+
+            sucesso(['id' => $pdo->lastInsertId(), 'mensagem' => 'Link adicionado com sucesso']);
+            break;
+
+        case 'obter_links':
+            // Obtém todos os links de uma tarefa
+            $tarefa_id = filter_var($_GET['tarefa_id'] ?? null, FILTER_VALIDATE_INT);
+
+            if (!$tarefa_id) {
+                erro('ID da tarefa é obrigatório');
+            }
+
+            $links = obter_links_tarefa($pdo, $tarefa_id);
+            sucesso($links);
+            break;
+
+        case 'deletar_link':
+            // Deleta um link de uma tarefa
+            $dados = $inputData;
+            $link_id = filter_var($dados['link_id'] ?? null, FILTER_VALIDATE_INT);
+
+            if (!$link_id) {
+                erro('ID do link é obrigatório');
+            }
+
+            $stmt = $pdo->prepare("DELETE FROM tarefas_links WHERE id = ?");
+            $stmt->execute([$link_id]);
+
+            sucesso(['mensagem' => 'Link removido com sucesso']);
+            break;
+
+        // =================================================================
         // [6.7] RELATÓRIOS (APENAS ADMIN)
         // =================================================================
 

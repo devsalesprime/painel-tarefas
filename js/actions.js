@@ -309,14 +309,14 @@ function abrirModalEditarProjeto(projeto) {
 
     if (idInput && nomeInput && descInput && dataInicioInput && dataFimInput) {
       idInput.value = projeto.id;
-      nomeInput.value = projeto.nome || "";
-      descInput.value = projeto.descricao || "";
+      nomeInput.value = decodeHtmlEntities(projeto.nome || "");
+      descInput.value = decodeHtmlEntities(projeto.descricao || "");
 
       if (projeto.data_inicio) {
-        dataInicioInput.value = projeto.data_inicio.slice(0, 10);
+        dataInicioInput.value = extrairDataLocal(projeto.data_inicio);
       }
       if (projeto.data_fim) {
-        dataFimInput.value = projeto.data_fim.slice(0, 10);
+        dataFimInput.value = extrairDataLocal(projeto.data_fim);
       }
 
       // Mostrar/ocultar botões baseado no status
@@ -618,21 +618,9 @@ async function salvarTarefa() {
   const dataInicioObj = criarDataLocal(dataInicio);
   const dataFimObj = criarDataLocal(dataFim);
 
-  // Permite editar datas passadas apenas se a tarefa já existia
-  // Mas não permite datas futuras que sejam anteriores ao momento atual
-  if (dataInicioObj < agora && status !== "concluida") {
-    mostrarErroNoModalEditar(
-      "A data de início não pode ser anterior a hoje para tarefas não concluídas!"
-    );
-    return;
-  }
+  // Permite editar datas passadas SEM restrições
+  // Apenas valida se data final é maior que inicial
 
-  if (dataFimObj < agora && status !== "concluida") {
-    mostrarErroNoModalEditar(
-      "A data de término não pode ser anterior a hoje para tarefas não concluídas!"
-    );
-    return;
-  }
 
   if (dataFimObj < dataInicioObj) {
     mostrarErroNoModalEditar(

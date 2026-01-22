@@ -71,15 +71,37 @@ async function renderizarTarefas() {
           continue;
         }
 
-        // Filtra tarefas ativas (não excluídas)
-        const tarefasAtivas = tarefas.filter((t) => t.status !== "excluida");
-        todasAsTarefas = todasAsTarefas.concat(tarefasAtivas);
+        // Filtra tarefas - Por padrão oculta tarefas CONCLUÍDAS (arquivadas)
+        // Tarefas EXCLUÍDAS sempre ficam ocultas
+        let tarefasParaExibir;
+        
+        console.log(`🗂️ Filtro de arquivadas para projeto ${projeto.nome}:`, {
+          mostrarArquivadas: taskManager.mostrarArquivadas,
+          totalTarefas: tarefas.length,
+          tarefasConcluidas: tarefas.filter((t) => t.status === "concluida").length,
+          tarefasExcluidas: tarefas.filter((t) => t.status === "excluida").length
+        });
+        
+        // Sempre filtrar tarefas excluídas (deletadas)
+        const tarefasNaoExcluidas = tarefas.filter((t) => t.status !== "excluida");
+        
+        if (taskManager.mostrarArquivadas) {
+          // Mostrar TODAS as tarefas (incluindo concluídas, mas não excluídas)
+          tarefasParaExibir = tarefasNaoExcluidas;
+          console.log(`✅ Mostrando TODAS as tarefas (incluindo concluídas): ${tarefasNaoExcluidas.length}`);
+        } else {
+          // Mostrar apenas tarefas NÃO concluídas (ocultar arquivadas)
+          tarefasParaExibir = tarefasNaoExcluidas.filter((t) => t.status !== "concluida");
+          console.log(`✅ Mostrando apenas tarefas NÃO CONCLUÍDAS: ${tarefasParaExibir.length}`);
+        }
+        
+        todasAsTarefas = todasAsTarefas.concat(tarefasParaExibir);
 
         // Conta projetos com tarefas válidas
-        if (tarefasAtivas.length > 0) projetosComTarefas++;
+        if (tarefasParaExibir.length > 0) projetosComTarefas++;
 
         // Filtra tarefas conforme filtros ativos
-        const tarefasFiltradas = filtrarTarefas(tarefasAtivas);
+        const tarefasFiltradas = filtrarTarefas(tarefasParaExibir);
 
         // Renderiza conforme o modo atual (lista ou kanban)
         // Renderiza conforme o modo atual (lista ou kanban)
@@ -238,7 +260,7 @@ function gerarCardKanban(tarefa, ehAdmin) {
   }" 
              data-tarefa-id="${
                tarefa.id
-             }" draggable="true" onclick="abrirEditarTarefa(${tarefa.id})">
+             }" draggable="true">
             <div class="card-header-mini">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="badge bg-${
@@ -474,7 +496,7 @@ function gerarCardLista(tarefa, ehAdmin) {
   return `
         <div class="lista-tarefa prioridade-${prioridadeInfo.cor} ${
     tarefa.status === "concluida" ? "concluida" : ""
-  }" onclick="abrirEditarTarefa(${tarefa.id})">
+  }">
             <div class="tarefa-header">
                 <div class="tarefa-info">
                     <h5 class="mb-1">${tarefa.titulo}</h5>

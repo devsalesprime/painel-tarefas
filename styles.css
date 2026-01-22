@@ -2178,6 +2178,23 @@ label[for="viewMinhasTarefas"] i {
 #viewMinhasTarefas:checked + .btn .icon-desativado {
   display: none;
 }
+
+/* ========== BOTÃO TAREFAS ARQUIVADAS - TOGGLE DE ÍCONES ========== */
+#viewTarefasArquivadas + .btn .icon-ativado {
+  display: none;
+}
+
+#viewTarefasArquivadas + .btn .icon-desativado {
+  display: inline-block;
+}
+
+#viewTarefasArquivadas:checked + .btn .icon-ativado {
+  display: inline-block;
+}
+
+#viewTarefasArquivadas:checked + .btn .icon-desativado {
+  display: none;
+}
 .btn-success {
   padding: 10px 20px;
   border-radius: 8px;

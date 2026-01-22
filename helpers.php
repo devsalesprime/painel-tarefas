@@ -495,6 +495,34 @@ function formatarTamanhoArquivo($bytes) {
 }
 
 // ============================================================================
+// SEÇÃO 8: GERENCIAMENTO DE LINKS
+// ============================================================================
+
+/**
+ * Obtém todos os links de uma tarefa
+ *
+ * Retorna a lista completa de links associados a uma tarefa,
+ * incluindo informações do usuário que adicionou cada link.
+ *
+ * @param PDO $pdo Conexão PDO com o banco de dados
+ * @param int $tarefa_id ID da tarefa
+ * @return array Array de links com dados do usuário
+ * @throws PDOException Em caso de erro na consulta
+ */
+function obter_links_tarefa($pdo, $tarefa_id) {
+    $stmt = $pdo->prepare("
+        SELECT l.id, l.titulo, l.url, l.data_criacao,
+               l.usuario_id, u.nome as usuario_nome
+        FROM tarefas_links l
+        LEFT JOIN usuarios u ON l.usuario_id = u.id
+        WHERE l.tarefa_id = ?
+        ORDER BY l.data_criacao DESC
+    ");
+    $stmt->execute([$tarefa_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// ============================================================================
 // FIM DO ARQUIVO
 // ============================================================================
 ?>

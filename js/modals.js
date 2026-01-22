@@ -381,11 +381,11 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
       { id: "editarDescricao", value: tarefa.descricao || "" },
       {
         id: "editarDataInicio",
-        value: tarefa.data_inicio ? tarefa.data_inicio.slice(0, 10) : "",
+        value: extrairDataLocal(tarefa.data_inicio),
       },
       {
         id: "editarDataFim",
-        value: tarefa.data_fim ? tarefa.data_fim.slice(0, 10) : "",
+        value: extrairDataLocal(tarefa.data_fim),
       },
       { id: "editarStatus", value: tarefa.status || "pendente" },
       {
@@ -397,7 +397,8 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
     elementosParaPreencher.forEach((item) => {
       const elemento = document.getElementById(item.id);
       if (elemento) {
-        elemento.value = item.value;
+        // Decodificar entidades HTML para garantir que aspas e caracteres especiais apareçam corretamente
+        elemento.value = decodeHtmlEntities(item.value);
       }
     });
 
@@ -432,6 +433,10 @@ async function abrirEditarTarefa(tarefaId, tabId = null) {
 
     if (document.getElementById("listaArquivos")) {
       promises.push(carregarArquivosTarefa(tarefaId, podeEditar));
+    }
+
+    if (document.getElementById("listaLinks")) {
+      promises.push(carregarLinks(tarefaId));
     }
 
     // Aguardar todas as cargas secundárias (mas não bloquear a exibição inicial do modal se possível, 
@@ -726,4 +731,30 @@ async function abrirModalDetalhes(tarefaId) {
     console.error("Erro ao abrir detalhes:", error);
     taskManager.mostrarErro("Erro ao carregar detalhes da tarefa");
   }
+}
+
+/**
+ * Abre o modal de nova tarefa com um projeto pré-selecionado
+ * @param {number} projetoId - ID do projeto a ser selecionado
+ */
+function abrirModalNovaTarefaProjeto(projetoId) {
+  // Abrir o modal de nova tarefa
+  const modalElement = document.getElementById("modalNovaTarefa");
+  if (!modalElement) {
+    console.error("Modal de nova tarefa não encontrado");
+    return;
+  }
+
+  // Selecionar o projeto no dropdown
+  const projetoSelect = document.getElementById("projeto");
+  if (projetoSelect) {
+    projetoSelect.value = projetoId;
+    
+    // Disparar evento de mudança para atualizar a UI se necessário
+    projetoSelect.dispatchEvent(new Event('change'));
+  }
+
+  // Abrir o modal
+  const modal = new bootstrap.Modal(modalElement);
+  modal.show();
 }

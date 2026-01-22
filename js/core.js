@@ -16,6 +16,7 @@ class TaskManager {
     this.filtroAtivo = "todas";
     this.filtroPrioridade = "todas";
     this.filtroMinhasTarefas = false;
+    this.mostrarArquivadas = false; // ✅ Inicializar como false por padrão
     this.stats = {
       total: 0,
       concluidas: 0,

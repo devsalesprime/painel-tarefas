@@ -1,5 +1,18 @@
 // ========== FUNÇÕES AUXILIARES PARA DATAS ==========
 
+/**
+ * Extrai a porção de data (YYYY-MM-DD) de uma string datetime sem conversão de timezone
+ * @param {string} datetimeString - String no formato "YYYY-MM-DD HH:MM:SS" ou "YYYY-MM-DD"
+ * @returns {string} - Data no formato "YYYY-MM-DD" ou string vazia
+ */
+function extrairDataLocal(datetimeString) {
+  if (!datetimeString) return "";
+  // Extrai apenas a parte da data antes do espaço (se houver)
+  // Isso evita conversões de timezone que podem mudar a data
+  const datePart = datetimeString.split(' ')[0];
+  return datePart;
+}
+
 function formatarDataHora(dataString) {
   if (!dataString) return "Não definida";
 
@@ -74,6 +87,23 @@ function getFileIcon(tipo) {
 function validarEmail(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
+}
+
+function decodeHtmlEntities(str) {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+}
+
+/**
+ * Escapa caracteres HTML para prevenir XSS
+ */
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function validarDatas() {
@@ -214,6 +244,14 @@ function botoesAdminProjeto(projeto) {
       : "";
 
   return `
+        <button class="btn btn-sm btn-success ms-2" 
+                onclick="abrirModalNovaTarefaProjeto(${projeto.id})" 
+                data-bs-toggle="tooltip" 
+                data-bs-placement="top" 
+                title="Criar nova tarefa neste projeto">
+            <i class="fas fa-plus"></i>
+            <span class="d-none d-sm-inline-block"> Nova Tarefa</span>
+        </button>
         ${statusBadge}
         <button class="btn btn-sm btn-primary ms-2" 
                 onclick='abrirModalEditarProjeto(${JSON.stringify(projeto)})' 

@@ -989,4 +989,39 @@ Para suporte, entre em contato:
 
 ---
 
-**Desenvolvido com ❤️ para Sales Prime**
+## 🆕 Novas Funcionalidades (v2.0)
+
+### 🔗 Links em Tarefas
+- ✅ Adicionar links externos (Google Drive, YouTube, documentos, etc.)
+- ✅ Título obrigatório para cada link
+- ✅ Links abrem em nova janela
+- ✅ Gerenciamento completo (adicionar/remover)
+
+### 📦 Filtro de Tarefas Arquivadas
+- ✅ Botão toggle para mostrar/ocultar tarefas concluídas
+- ✅ Tarefas concluídas ficam ocultas por padrão
+- ✅ Preferência salva no localStorage
+
+### ➕ Botão Criar Tarefa no Projeto
+- ✅ Botão "Nova Tarefa" no cabeçalho de cada projeto
+- ✅ Abre modal com projeto pré-selecionado
+- ✅ Criação rápida sem precisar selecionar projeto
+
+---
+
+## 📝 Licença
+
+Este projeto é proprietário. Todos os direitos reservados.
+
+---
+
+## 👨‍💻 Créditos
+
+**Desenvolvido por:** [Rugemtugem](https://github.com/rugemtugem)  
+**Para:** Sales Prime  
+**Ano:** 2026
+
+---
+
+**Task Panel v2.0** - Sistema de Gerenciamento de Projetos e Tarefas  
+© 2026 Sales Prime. Todos os direitos reservados.

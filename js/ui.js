@@ -152,6 +152,34 @@ function configurarVisualizacao() {
   if (viewMinhasTarefas) {
     viewMinhasTarefas.addEventListener("change", function () {
       taskManager.filtroMinhasTarefas = this.checked;
+      
+      // ✅ SALVAR PREFERÊNCIA
+      localStorage.setItem("taskFilterMyTasks", this.checked);
+      
+      renderizarTarefas();
+      atualizarEstadoVisualizacao();
+    });
+  }
+
+  // Botão de Tarefas Arquivadas
+  const viewTarefasArquivadas = document.getElementById("viewTarefasArquivadas");
+  if (viewTarefasArquivadas) {
+    viewTarefasArquivadas.addEventListener("change", function () {
+      console.log("🔄 Toggle Tarefas Arquivadas clicado:", {
+        checked: this.checked,
+        antes: taskManager.mostrarArquivadas
+      });
+      
+      taskManager.mostrarArquivadas = this.checked;
+      
+      // ✅ SALVAR PREFERÊNCIA
+      localStorage.setItem("taskShowArchived", this.checked);
+      
+      console.log("✅ Novo estado:", {
+        taskManagerMostrarArquivadas: taskManager.mostrarArquivadas,
+        localStorage: localStorage.getItem("taskShowArchived")
+      });
+      
       renderizarTarefas();
       atualizarEstadoVisualizacao();
     });
@@ -164,6 +192,35 @@ function configurarVisualizacao() {
   } else if (viewList) {
     viewList.checked = true;
   }
+  
+  // ✅ CARREGAR PREFERÊNCIA DE FILTRO DE USUÁRIO
+  const savedMyTasks = localStorage.getItem("taskFilterMyTasks") === "true";
+  if (savedMyTasks && viewMinhasTarefas) {
+      viewMinhasTarefas.checked = true;
+      taskManager.filtroMinhasTarefas = true;
+  }
+  
+  // ✅ CARREGAR PREFERÊNCIA DE TAREFAS ARQUIVADAS
+  const savedShowArchived = localStorage.getItem("taskShowArchived");
+  console.log("🗂️ Debug Tarefas Arquivadas:", {
+    savedShowArchived: savedShowArchived,
+    savedShowArchivedBoolean: savedShowArchived === "true",
+    taskManagerMostrarArquivadas: taskManager.mostrarArquivadas
+  });
+  
+  if (savedShowArchived === "true" && viewTarefasArquivadas) {
+      viewTarefasArquivadas.checked = true;
+      taskManager.mostrarArquivadas = true;
+      console.log("✅ Tarefas arquivadas ATIVADAS via localStorage");
+  } else {
+      // Garantir que está desativado se não houver preferência salva ou se for "false"
+      if (viewTarefasArquivadas) {
+        viewTarefasArquivadas.checked = false;
+      }
+      taskManager.mostrarArquivadas = false;
+      console.log("✅ Tarefas arquivadas DESATIVADAS (padrão)");
+  }
+  
   alterarVisualizacao(savedView);
   atualizarEstadoVisualizacao();
 }
@@ -173,12 +230,15 @@ function atualizarEstadoVisualizacao() {
   const viewList = document.getElementById("viewList");
   const viewKanban = document.getElementById("viewKanban");
   const viewMinhasTarefas = document.getElementById("viewMinhasTarefas");
+  const viewTarefasArquivadas = document.getElementById("viewTarefasArquivadas");
 
   // Remover classes ativas de todos
   if (viewList) viewList.parentElement?.classList.remove("active");
   if (viewKanban) viewKanban.parentElement?.classList.remove("active");
   if (viewMinhasTarefas)
     viewMinhasTarefas.parentElement?.classList.remove("active");
+  if (viewTarefasArquivadas)
+    viewTarefasArquivadas.parentElement?.classList.remove("active");
 
   // ✅ CORREÇÃO: Adicionar classe ativa em MULTIPLOS botões
   if (viewList?.checked) {
@@ -194,12 +254,19 @@ function atualizarEstadoVisualizacao() {
     console.log('✅ Botão "Suas Tarefas" ativo');
   }
 
+  if (viewTarefasArquivadas?.checked) {
+    viewTarefasArquivadas.parentElement?.classList.add("active");
+    console.log('✅ Botão "Tarefas Arquivadas" ativo');
+  }
+
   console.log("🎯 Estado atual:", {
     visualizacao: viewMode,
     filtroMinhasTarefas: taskManager.filtroMinhasTarefas,
+    mostrarArquivadas: taskManager.mostrarArquivadas,
     listaAtiva: viewList?.checked,
     kanbanAtivo: viewKanban?.checked,
     minhasTarefasAtivo: viewMinhasTarefas?.checked,
+    arquivadasAtivo: viewTarefasArquivadas?.checked,
   });
 }
 
@@ -340,6 +407,7 @@ function limparFiltros() {
   const viewMinhasTarefas = document.getElementById("viewMinhasTarefas");
   if (viewMinhasTarefas) {
     viewMinhasTarefas.checked = false;
+    localStorage.removeItem("taskFilterMyTasks"); // Limpar persistência
   }
 
   // ✅ CORREÇÃO: Restaurar visualização padrão (lista)

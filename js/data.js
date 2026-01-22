@@ -23,7 +23,7 @@ async function carregarProjetos() {
       dados.forEach((p) => {
         const option = document.createElement("option");
         option.value = p.id;
-        option.textContent = p.nome;
+        option.textContent = decodeHtmlEntities(p.nome);
         select.appendChild(option);
       });
 
@@ -236,4 +236,120 @@ async function carregarEtapasEditar(etapas) {
     `
     )
     .join("");
+}
+
+// ========== FUNÇÕES DE LINKS ==========
+
+/**
+ * Carrega e exibe os links de uma tarefa
+ */
+async function carregarLinks(tarefaId) {
+  try {
+    const links = await taskManager.fetch(`obter_links&tarefa_id=${encodeURIComponent(tarefaId)}`);
+    
+    const listaLinks = document.getElementById('listaLinks');
+    
+    if (!listaLinks) return;
+    
+    if (links.length === 0) {
+      listaLinks.innerHTML = '<p class="text-muted small mb-0">Nenhum link adicionado</p>';
+      return;
+    }
+    
+    listaLinks.innerHTML = links.map(link => `
+      <div class="link-item d-flex justify-content-between align-items-start mb-2 p-2 border rounded bg-light">
+        <div class="flex-grow-1">
+          <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" 
+             class="text-decoration-none d-block">
+            <i class="fas fa-external-link-alt me-1 text-primary"></i>
+            <strong>${escapeHtml(link.titulo)}</strong>
+          </a>
+          <small class="text-muted d-block text-truncate" style="max-width: 300px;" 
+                 title="${escapeHtml(link.url)}">${escapeHtml(link.url)}</small>
+          <small class="text-muted">
+            <i class="fas fa-user"></i> ${escapeHtml(link.usuario_nome || 'Desconhecido')} • 
+            <i class="fas fa-clock"></i> ${formatarDataHora(link.data_criacao)}
+          </small>
+        </div>
+        <button class="btn btn-sm btn-danger ms-2" onclick="deletarLink(${link.id})" 
+                title="Remover link">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Erro ao carregar links:', error);
+    const listaLinks = document.getElementById('listaLinks');
+    if (listaLinks) {
+      listaLinks.innerHTML = '<p class="text-danger small">Erro ao carregar links</p>';
+    }
+  }
+}
+
+/**
+ * Adiciona um novo link à tarefa
+ */
+async function adicionarLink() {
+  const tarefaId = taskManager.tarefaEditandoId;
+  const titulo = document.getElementById('linkTitulo').value.trim();
+  const url = document.getElementById('linkUrl').value.trim();
+  
+  if (!titulo || !url) {
+    taskManager.mostrarErro('Título e URL são obrigatórios!');
+    return;
+  }
+  
+  // Validação básica de URL
+  try {
+    new URL(url);
+  } catch (e) {
+    taskManager.mostrarErro('URL inválida! Use o formato: https://exemplo.com');
+    return;
+  }
+  
+  try {
+    await taskManager.fetch('api.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'adicionar_link',
+        tarefa_id: tarefaId,
+        titulo: titulo,
+        url: url
+      })
+    });
+    
+    // Limpar campos
+    document.getElementById('linkTitulo').value = '';
+    document.getElementById('linkUrl').value = '';
+    
+    // Recarregar lista
+    await carregarLinks(tarefaId);
+    taskManager.mostrarSucesso('Link adicionado com sucesso!');
+  } catch (error) {
+    taskManager.mostrarErro('Erro ao adicionar link: ' + error.message);
+  }
+}
+
+/**
+ * Deleta um link da tarefa
+ */
+async function deletarLink(linkId) {
+  if (!confirm('Deseja realmente remover este link?')) return;
+  
+  try {
+    await taskManager.fetch('api.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'deletar_link',
+        link_id: linkId
+      })
+    });
+    
+    await carregarLinks(taskManager.tarefaEditandoId);
+    taskManager.mostrarSucesso('Link removido com sucesso!');
+  } catch (error) {
+    taskManager.mostrarErro('Erro ao remover link: ' + error.message);
+  }
 }
